@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react'
-import HeroSection from '../Components/HeroSection'
-import { Link, useNavigate, useParams } from 'react-router-dom'
-import { useDispatch, useSelector } from 'react-redux'
+import React, { useEffect, useState } from 'react';
+import HeroSection from '../Components/HeroSection';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
 
-import { getProduct } from "../Redux/ActionCreators/ProductActionCreators"
+import { getProduct } from "../Redux/ActionCreators/ProductActionCreators";
 import { getResturent, updateResturent } from '../Redux/ActionCreators/ResturentActionCreators';
 import Products from '../Components/Products';
 
@@ -41,15 +41,13 @@ export default function ResturentDetailPage() {
     let [relatedProduct, setRelatedProduct] = useState([]);
     let [qty, setQty] = useState(1);
     let [mode, setMode] = useState("COD");
-    let [show ,setShow] = useState(false)
-
+    let [show, setShow] = useState(false);
 
     useEffect(() => {
         dispatch(getResturent());
 
         if (ResturentStateData.length > 0) {
             let item = ResturentStateData.find((x) => x._id === _id);
-            console.log(item)
             if (item) setData({ ...item });
         }
     }, [ResturentStateData.length]);
@@ -63,7 +61,6 @@ export default function ResturentDetailPage() {
         while (start < end) {
             let next = new Date(start);
             next.setMinutes(start.getMinutes() + 60);
-
             let formatTime = time => time.toString().padStart(2, '0');
             slots.push(`${formatTime(start.getHours())}:${formatTime(start.getMinutes())} - ${formatTime(next.getHours())}:${formatTime(next.getMinutes())}`);
             start = next;
@@ -99,14 +96,24 @@ export default function ResturentDetailPage() {
     async function postData(e) {
         e.preventDefault();
 
-        // Validate required fields
         if (!data.reservationDate) {
-            setShow(true)
+            setShow(true);
             setErrorMessage(prev => ({ ...prev, reservationDate: "Date field is mandatory" }));
             return;
         }
+
+        const selectedDate = new Date(data.reservationDate);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // clear time portion
+
+        if (selectedDate < today) {
+            setShow(true);
+            setErrorMessage(prev => ({ ...prev, reservationDate: "Backdate not allowed. Please choose today or a future date." }));
+            return;
+        }
+
         if (!Array.isArray(data.timeSlots) || data.timeSlots.length === 0) {
-            setShow(true)
+            setShow(true);
             setErrorMessage(prev => ({ ...prev, timeSlots: "Selecting at least one time slot is mandatory" }));
             return;
         }
@@ -129,27 +136,27 @@ export default function ResturentDetailPage() {
                         date: data.reservationDate,
                         time: data.timeSlots.join(", "),
                     })
-                })
-                bookingResponse = await bookingResponse.json()
-                console.log(bookingResponse.data)
+                });
+
+                bookingResponse = await bookingResponse.json();
+
                 if (bookingResponse.result === "Done") {
                     let updateResponse = await fetch(`${process.env.REACT_APP_BACKEND_SERVER}/api/resturent/user/${_id}`, {
                         method: "PUT",
                         headers: {
                             "content-type": "application/json",
                             "authorization": localStorage.getItem("token")
-
                         },
                         body: JSON.stringify({
-                            ...data,seatAvailable : data.seatAvailable - qty 
+                            ...data, seatAvailable: data.seatAvailable - qty
                         })
-                    })
-                    updateResponse : await updateResponse.json()
-                    console.log(updateResponse)
-                    if(mode === "COD")
-                        navigate(`/confirmationBooking/${bookingResponse.data._id}`)
-                    else 
-                    navigate("/payment/booking/-1")
+                    });
+
+                    updateResponse = await updateResponse.json();
+                    if (mode === "COD")
+                        navigate(`/confirmationBooking/${bookingResponse.data._id}`);
+                    else
+                        navigate("/payment/booking/-1");
                 }
             }
         } else {
@@ -167,7 +174,6 @@ export default function ResturentDetailPage() {
             setRelatedProduct(ProductStateData.filter(x => x.resturent === data.name));
         }
     }, [ProductStateData, data.name]);
-
 
     return (
         <>
@@ -190,42 +196,21 @@ export default function ResturentDetailPage() {
                                 <div className="card shadow-lg p-4">
                                     <table className="table table-bordered">
                                         <tbody>
-                                            <tr>
-                                                <th>Dish Name</th>
-                                                <td>{data.name || "N/A"}</td>
-                                            </tr>
-                                            <tr>
-                                                <th>Contact Number</th>
-                                                <td>{data.phone || "N/A"}</td>
-                                            </tr>
-                                            <tr>
-                                                <th>Address</th>
-                                                <td>{data.address || "N/A"}</td>
-                                            </tr>
-                                            <tr>
-                                                <th>Price</th>
+                                            <tr><th>Dish Name</th><td>{data.name}</td></tr>
+                                            <tr><th>Contact</th><td>{data.phone}</td></tr>
+                                            <tr><th>Address</th><td>{data.address}</td></tr>
+                                            <tr><th>Price</th>
                                                 <td>
                                                     <del className='text-danger'>&#8377;{data.reservationPrice}</del>
                                                     <strong className="ms-2 text-success">&#8377;{data.finalPrice}</strong>
                                                     <sup className='text-success'> {data.discount}%</sup>
                                                 </td>
                                             </tr>
-                                            <tr>
-                                                <th>Seats Available</th>
-                                                <td>{data.seatAvailable || "N/A"}</td>
+                                            <tr><th>Seats Available</th><td>{data.seatAvailable}</td></tr>
+                                            <tr><th>Status</th>
+                                                <td><span className={`badge ${data.status ? 'bg-success' : 'bg-danger'}`}>{data.status ? "OPEN" : "CLOSE"}</span></td>
                                             </tr>
-                                            <tr>
-                                                <th>Status</th>
-                                                <td>
-                                                    <span className={`badge ${data.status ? 'bg-success' : 'bg-danger'}`}>
-                                                        {data.status ? "OPEN" : "CLOSE"}
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <th>Timing</th>
-                                                <td>{data.openTime} - {data.closeTime}</td>
-                                            </tr>
+                                            <tr><th>Timing</th><td>{data.openTime} - {data.closeTime}</td></tr>
                                             <tr>
                                                 <th>Select Time Slot</th>
                                                 <td>
@@ -237,9 +222,8 @@ export default function ResturentDetailPage() {
                                                     <button type="button" className={`btn  ${show && errorMessage.timeSlots ? 'btn-danger' : 'btn-success'} mt-2`} onClick={addTimeSlot}>
                                                         Add Slot
                                                     </button>
-                                                    {show && errorMessage.timeSlots ? <p>{errorMessage.timeSlots}</p> : null}
+                                                    {show && errorMessage.timeSlots && <p className="text-danger">{errorMessage.timeSlots}</p>}
                                                 </td>
-
                                             </tr>
                                             <tr>
                                                 <th>Selected Time Slots</th>
@@ -254,29 +238,34 @@ export default function ResturentDetailPage() {
                                             <tr>
                                                 <th>Date</th>
                                                 <td>
-                                                    <input type="date" name="reservationDate" className={`form-control border1 ${show && errorMessage.reservationDate ? 'border-danger' : 'border-primary'}`} onChange={getInputData} />
-                                                    {show && errorMessage.reservationDate ? <p>{errorMessage.reservationDate}</p> : null}
+                                                    <input
+                                                        type="date"
+                                                        name="reservationDate"
+                                                        min={new Date().toISOString().split("T")[0]}
+                                                        className={`form-control ${show && errorMessage.reservationDate ? 'border-danger' : 'border-primary'}`}
+                                                        onChange={getInputData}
+                                                    />
+                                                    {show && errorMessage.reservationDate && <p className="text-danger">{errorMessage.reservationDate}</p>}
                                                 </td>
                                             </tr>
                                             <tr>
                                                 <th>No. Of Seats</th>
                                                 <td>
-                                                    <div className="btn-group w-50 ">
-                                                        <button className="btn btn-primary" type='button' style={{ borderRadius: "5px" }} onClick={() => setQty((prev) => Math.max(1, prev - 1))} >
+                                                    <div className="btn-group w-50">
+                                                        <button className="btn btn-primary" type='button' onClick={() => setQty(prev => Math.max(1, prev - 1))}>
                                                             <i className="fa fa-minus"></i>
                                                         </button>
                                                         <h3 className="w-50 text-center">{qty}</h3>
-                                                        <button className="btn btn-primary" type='button' style={{ borderRadius: "5px" }} onClick={() => setQty((prev) => Math.min(data.seatAvailable, prev + 1))} >
+                                                        <button className="btn btn-primary" type='button' onClick={() => setQty(prev => Math.min(data.seatAvailable, prev + 1))}>
                                                             <i className="fa fa-plus"></i>
                                                         </button>
                                                     </div>
                                                 </td>
-
                                             </tr>
                                             <tr>
                                                 <th>Payment Mode</th>
                                                 <td>
-                                                    <select name="paymentMode" className='form-select border-1 border-primary' onChange={(e) => setMode(e.target.value)} >
+                                                    <select name="paymentMode" className='form-select border-1 border-primary' onChange={(e) => setMode(e.target.value)}>
                                                         <option value="COD">Cash On Delivery</option>
                                                         <option value="Net Banking">Net Banking/UPI/Card</option>
                                                     </select>
@@ -284,9 +273,7 @@ export default function ResturentDetailPage() {
                                             </tr>
                                             <tr>
                                                 <td colSpan={2}>
-                                                    <button className="btn btn-primary w-100" type="submit">
-                                                        Book Now
-                                                    </button>
+                                                    <button className="btn btn-primary w-100" type="submit">Book Now</button>
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -300,5 +287,5 @@ export default function ResturentDetailPage() {
 
             {relatedProduct.length > 0 && <Products title="Other Related Dishes" data={relatedProduct} />}
         </>
-    )
+    );
 }
