@@ -1,10 +1,14 @@
 const express = require("express")
 const cors = require("cors")
+const path = require('path')
+
 require("dotenv").config()
 require("./db_connect")
-const app = express()
+
 
 const Router = require("./routes/index")
+const app = express()
+
 var whitelist = ['http://localhost:4000', 'http://localhost:8000', 'http://localhost:5000']
 var corsOptions = {
     origin: function (origin, callback) {
@@ -21,6 +25,12 @@ app.use(express.json())                     //used to parse incomming json data
 app.use("/public", express.static("public"))
 
 app.use("/api", Router)
+
+// Serve React frontend
+app.use("", express.static(path.join(__dirname, "client/build")));
+app.get("/*", (req, res) => {
+    res.sendFile(path.join(__dirname, "client/build", "index.html"));
+});
 
 let port = process.env.PORT || 8000
 app.listen(port, console.log(`Server is Running at http://localhost:8000`))
