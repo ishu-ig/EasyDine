@@ -95,7 +95,7 @@ export default function HomePage() {
       <About />
       <Features />
       <CategorySlider title="Subcategory" data={SubcategoryStateData.filter(x=>x.active)} />
-      <Products data={ProductStateData.filter(x=>x.active).slice(0,12)} />
+      <Products data={ProductStateData.filter(x=>x.active).slice(0,12)} show="true" />
       <Deals />
       <ResturentSlider title="Resturent" data={ResturentStateData.filter(x=>x.active)} />
       <Testimonials />

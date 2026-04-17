@@ -1,86 +1,193 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react';
 import { Swiper, SwiperSlide } from "swiper/react";
-
-// Import Swiper styles
+import { EffectCoverflow, Pagination, Autoplay } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/effect-coverflow";
-import "swiper/css/effect-cards";
 import "swiper/css/pagination";
-
-import { EffectCoverflow, Pagination } from "swiper/modules";
 import { useDispatch, useSelector } from 'react-redux';
+import { getTestimonial } from "../Redux/ActionCreators/TestimonialActionCreators";
 
-import { getTestimonial } from "../Redux/ActionCreators/TestimonialActionCreators"
+// Star rating display
+function Stars({ count = 5 }) {
+  return (
+    <div style={{ display: 'flex', gap: 3, marginBottom: 12 }}>
+      {Array.from({ length: count }).map((_, i) => (
+        <i key={i} className="fa fa-star" style={{ color: 'var(--secondary)', fontSize: '0.75rem' }}></i>
+      ))}
+    </div>
+  );
+}
 
 export default function Testimonials() {
-    let TestimonialStateData = useSelector(state=>state.TestimonialStateData)
-    let dispatch = useDispatch()
+  const TestimonialStateData = useSelector(state => state.TestimonialStateData);
+  const dispatch = useDispatch();
+  const [slidePerViews, setSlidePerViews] = useState(window.innerWidth < 1000 ? 1 : 3);
 
-    let [slidePerViews, setSlidePerViews] = useState(
-        window.innerWidth < 1000 ? 1 : 3
-    )
-    let options = {
-        effect: 'coverflow',
-        grabCursor: true,
-        centeredSlides: true,
-        slidesPerView: slidePerViews,
-        coverflowEffect: {
-            rotate: 50,
-            stretch: 0,
-            depth: 100,
-            modifier: 1,
-            slideShadows: true,
-        },
-        pagination: true,
-        loop: true,
-        modules: [EffectCoverflow, Pagination],
-        classNameName: "mySwiper"
-    }
+  useEffect(() => {
+    const handleResize = () => setSlidePerViews(window.innerWidth < 1000 ? 1 : 3);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
-    function handleWindowRwsize() {
-        setSlidePerViews(window.innerWidth < 1000 ? 1 : 3)
-    }
-    window.addEventListener('resize', handleWindowRwsize)
+  useEffect(() => {
+    dispatch(getTestimonial());
+  }, [TestimonialStateData.length]);
 
-    useEffect(()=>{
-        (()=>{
-            dispatch(getTestimonial())
-        })()
-    },[TestimonialStateData.length])
+  const swiperOptions = {
+    effect: 'coverflow',
+    grabCursor: true,
+    centeredSlides: true,
+    slidesPerView: slidePerViews,
+    coverflowEffect: {
+      rotate: 40,
+      stretch: 0,
+      depth: 120,
+      modifier: 1,
+      slideShadows: false,
+    },
+    pagination: { clickable: true },
+    loop: true,
+    autoplay: { delay: 4000, disableOnInteraction: false },
+    modules: [EffectCoverflow, Pagination, Autoplay],
+    className: "mySwiper",
+  };
 
-    return (
-        <>
-            {/* <!-- Testimonial Start --> */}
-            <div className="container-fluid bg-light bg-icon py-6 mb-5">
-                <div className="container">
-                    <div className="section-header text-center mx-auto mb-5 wow fadeInUp" data-wow-delay="0.1s" style={{ maxWidth: 500 }}>
-                        <h1 className="display-5 mb-3">Customer Review</h1>
-                        <p>Tempor ut dolore lorem kasd vero ipsum sit eirmod sit. Ipsum diam justo sed rebum vero dolor duo.</p>
+  return (
+    <section style={{
+      padding: '90px 0',
+      background: 'linear-gradient(180deg, #FDF6EE 0%, #FFF8F0 100%)',
+      position: 'relative',
+      overflow: 'hidden',
+    }}>
+      {/* Decorative large quote */}
+      <div style={{
+        position: 'absolute',
+        top: 40,
+        left: '50%',
+        transform: 'translateX(-50%)',
+        fontFamily: 'Playfair Display, serif',
+        fontSize: '20rem',
+        color: 'rgba(200,64,10,0.04)',
+        lineHeight: 1,
+        pointerEvents: 'none',
+        userSelect: 'none',
+        zIndex: 0,
+      }}>
+        "
+      </div>
+
+      <div className="container" style={{ position: 'relative', zIndex: 1 }}>
+        {/* Section header */}
+        <div className="text-center mb-5">
+          <p style={{ fontSize: '0.78rem', fontWeight: 700, letterSpacing: '0.15em', color: 'var(--primary)', textTransform: 'uppercase', marginBottom: 8 }}>
+            Testimonials
+          </p>
+          <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: 'clamp(1.8rem, 3.5vw, 2.6rem)', fontWeight: 900, color: 'var(--dark)', marginBottom: 12 }}>
+            What Our Customers Say
+          </h2>
+          <p style={{ color: 'var(--gray)', maxWidth: 480, margin: '0 auto', fontSize: '0.95rem' }}>
+            Real experiences from people who love dining with us.
+          </p>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 16 }}>
+            <span style={{ width: 36, height: 3, background: 'var(--primary)', borderRadius: 2, display: 'block' }} />
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--secondary)', display: 'block' }} />
+            <span style={{ width: 56, height: 3, background: 'var(--secondary)', borderRadius: 2, display: 'block', opacity: 0.5 }} />
+          </div>
+        </div>
+
+        <Swiper {...swiperOptions} style={{ paddingBottom: 50 }}>
+          {TestimonialStateData.map((item) => (
+            <SwiperSlide key={item._id}>
+              {({ isActive }) => (
+                <div style={{
+                  background: isActive
+                    ? 'linear-gradient(135deg, var(--primary) 0%, #E86834 100%)'
+                    : 'white',
+                  borderRadius: 24,
+                  padding: '32px 28px',
+                  boxShadow: isActive
+                    ? '0 24px 60px rgba(200,64,10,0.3)'
+                    : '0 4px 20px rgba(28,16,9,0.07)',
+                  border: isActive ? 'none' : '1px solid rgba(200,64,10,0.1)',
+                  transition: 'all 0.4s ease',
+                  position: 'relative',
+                  overflow: 'hidden',
+                }}>
+                  {/* Big quote decoration */}
+                  <div style={{
+                    position: 'absolute',
+                    top: -10,
+                    right: 20,
+                    fontFamily: 'Playfair Display, serif',
+                    fontSize: '8rem',
+                    color: isActive ? 'rgba(255,255,255,0.12)' : 'rgba(200,64,10,0.06)',
+                    lineHeight: 1,
+                    pointerEvents: 'none',
+                  }}>
+                    "
+                  </div>
+
+                  <Stars />
+
+                  {/* Message */}
+                  <p style={{
+                    color: isActive ? 'rgba(255,255,255,0.9)' : 'var(--gray)',
+                    fontSize: '0.9rem',
+                    lineHeight: 1.75,
+                    marginBottom: 24,
+                    maxHeight: 160,
+                    overflowY: 'auto',
+                    scrollbarWidth: 'none',
+                    msOverflowStyle: 'none',
+                  }}>
+                    {item.message}
+                  </p>
+
+                  {/* Divider */}
+                  <div style={{
+                    height: 1,
+                    background: isActive ? 'rgba(255,255,255,0.2)' : 'rgba(200,64,10,0.1)',
+                    marginBottom: 20,
+                  }} />
+
+                  {/* Author */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                    <img
+                      src={`${process.env.REACT_APP_BACKEND_SERVER}/${item.pic}`}
+                      alt={item.name}
+                      style={{
+                        width: 52, height: 52,
+                        borderRadius: '50%',
+                        objectFit: 'cover',
+                        border: isActive ? '3px solid rgba(255,255,255,0.4)' : '3px solid rgba(200,64,10,0.15)',
+                        flexShrink: 0,
+                      }}
+                    />
+                    <div>
+                      <h5 style={{
+                        margin: 0,
+                        fontFamily: 'Playfair Display, serif',
+                        fontWeight: 700,
+                        fontSize: '0.95rem',
+                        color: isActive ? 'white' : 'var(--dark)',
+                      }}>
+                        {item.name}
+                      </h5>
+                      <span style={{
+                        fontSize: '0.8rem',
+                        color: isActive ? 'rgba(255,255,255,0.65)' : 'var(--gray)',
+                        fontStyle: 'italic',
+                      }}>
+                        {item.profession}
+                      </span>
                     </div>
-                    <div className="testimonial-carousel wow fadeInUp" data-wow-delay="0.1s">
-                        <Swiper {...options}>
-                            {TestimonialStateData.map((item=>{
-                                return <SwiperSlide key={item._id}>
-                                <div className="testimonial-item position-relative bg-white p-5 mt-4">
-                                    <i className="fa fa-quote-left fa-3x text-primary position-absolute top-0 start-0 mt-n4 ms-5"></i>
-                                    <p className="mb-4 testimonial-message" >{item.message}</p>
-                                    <div className="d-flex align-items-center">
-                                        <img className="flex-shrink-0 rounded-circle" src={`${process.env.REACT_APP_BACKEND_SERVER}/${item.pic}`} height={100} width={100} alt="" />
-                                        <div className="ms-3">
-                                            <h5 className="mb-1">{item.name}</h5>
-                                            <span>{item.profession}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </SwiperSlide>
-                            }))}
-                            
-                        </Swiper>
-                    </div>
+                  </div>
                 </div>
-            </div >
-            {/* <!-- Testimonial End --> */}
-
-        </>
-    )
+              )}
+            </SwiperSlide>
+          ))}
+        </Swiper>
+      </div>
+    </section>
+  );
 }

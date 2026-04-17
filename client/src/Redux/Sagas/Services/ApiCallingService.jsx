@@ -36,9 +36,7 @@ export async function getRecord(collection,payload) {
             url = `${process.env.REACT_APP_BACKEND_SERVER}/api/${collection}/${localStorage.getItem("userid")}`
         else if ((collection === "checkout" || collection==="booking") && localStorage.getItem("role") === "Buyer")
             url = `${process.env.REACT_APP_BACKEND_SERVER}/api/${collection}/user/${localStorage.getItem("userid")}`
-        else if ((collection === "checkout" || collection==="booking") && localStorage.getItem("role") === "Buyer")
-            url = `${process.env.REACT_APP_BACKEND_SERVER}/api/${collection}/user/${payload._id}`
-
+    
         let response = await fetch(url, {
             method: "GET",
             headers: {

@@ -1,30 +1,31 @@
-import React, { useEffect, useState } from 'react';
-import HeroSection from '../Components/HeroSection';
-import Products from '../Components/Products';
-import { getProduct } from '../Redux/ActionCreators/ProductActionCreators';
-import { getMaincategory } from '../Redux/ActionCreators/MaincategoryActionCreators';
-import { getSubcategory } from '../Redux/ActionCreators/SubcategoryActionCreators';
-import { getResturent } from '../Redux/ActionCreators/ResturentActionCreators';
-import { useDispatch, useSelector } from 'react-redux';
-import { Link, useSearchParams } from 'react-router-dom';
+import React, { useEffect, useState } from "react";
+import HeroSection from "../Components/HeroSection";
+import Products from "../Components/Products";
+import { getProduct } from "../Redux/ActionCreators/ProductActionCreators";
+import { getMaincategory } from "../Redux/ActionCreators/MaincategoryActionCreators";
+import { getSubcategory } from "../Redux/ActionCreators/SubcategoryActionCreators";
+import { getResturent } from "../Redux/ActionCreators/ResturentActionCreators";
+import { useDispatch, useSelector } from "react-redux";
+import { Link, useSearchParams } from "react-router-dom";
 
-export default function ProductPage() {
-  let [data, setData] = useState([]);
-  let [mc, setMc] = useState('All');
-  let [sc, setSc] = useState('All');
-  let [rn, setRn] = useState('All');
-  let [search, setSearch] = useState('');
-  let [min, setMin] = useState(0);
-  let [max, setMax] = useState(1000);
-  
-  let [searchParams] = useSearchParams();
-  let dispatch = useDispatch();
+export default function ProductPage({show}) {
+  const [data, setData] = useState([]);
+  const [mc, setMc] = useState("All");
+  const [sc, setSc] = useState("All");
+  const [rn, setRn] = useState("All");
+  const [search, setSearch] = useState("");
+  const [min, setMin] = useState(0);
+  const [max, setMax] = useState(1000);
 
-  let ProductStateData = useSelector((state) => state.ProductStateData);
-  let MaincategoryStateData = useSelector((state) => state.MaincategoryStateData);
-  let SubcategoryStateData = useSelector((state) => state.SubcategoryStateData);
-  let ResturentStateData = useSelector((state) => state.ResturentStateData);
+  const [searchParams] = useSearchParams();
+  const dispatch = useDispatch();
 
+  const ProductStateData = useSelector((state) => state.ProductStateData);
+  const MaincategoryStateData = useSelector((state) => state.MaincategoryStateData);
+  const SubcategoryStateData = useSelector((state) => state.SubcategoryStateData);
+  const ResturentStateData = useSelector((state) => state.ResturentStateData);
+
+  // Fetch Data
   useEffect(() => {
     dispatch(getMaincategory());
     dispatch(getSubcategory());
@@ -32,92 +33,197 @@ export default function ProductPage() {
     dispatch(getProduct());
   }, [dispatch]);
 
+  // Handle Filters on Param Change
   useEffect(() => {
-    let mcParam = searchParams.get("mc") ?? "All";
-    let scParam = searchParams.get("sc") ?? "All";
-    let rnParam = searchParams.get("rn") ?? "All";
+    const mcParam = searchParams.get("mc") ?? "All";
+    const scParam = searchParams.get("sc") ?? "All";
+    const rnParam = searchParams.get("rn") ?? "All";
 
     setMc(mcParam);
     setSc(scParam);
     setRn(rnParam);
 
     if (ProductStateData.length) {
-      filter(mcParam, scParam, rnParam, Number(min), Number(max));
+      applyFilters(mcParam, scParam, rnParam, Number(min), Number(max), search);
     }
-  }, [ProductStateData.length, searchParams, min, max]);
+  }, [ProductStateData.length, searchParams, min, max, search]);
 
-  function filter(mc, sc, rn, minPrice = -1, maxPrice = -1) {
-    setSearch("");
-    const filteredData = ProductStateData.filter((p) => {
+  // Core Filter Function
+  function applyFilters(mc, sc, rn, minPrice, maxPrice, keyword = "") {
+    const ch = keyword.toLowerCase();
+    const filtered = ProductStateData.filter((p) => {
       return (
+        p.active &&
         (mc === "All" || p.maincategory?.name === mc) &&
         (sc === "All" || p.subcategory?.name === sc) &&
         (rn === "All" || p.resturent?.name === rn) &&
         (minPrice === -1 || p.finalPrice >= minPrice) &&
-        (maxPrice === -1 || p.finalPrice <= maxPrice)
+        (maxPrice === -1 || p.finalPrice <= maxPrice) &&
+        (!ch ||
+          p.maincategory?.name?.toLowerCase().includes(ch) ||
+          p.subcategory?.name?.toLowerCase().includes(ch) ||
+          p.resturent?.name?.toLowerCase().includes(ch) ||
+          p.description?.toLowerCase().includes(ch))
       );
     });
-    setData(filteredData);
+    setData(filtered);
   }
 
-  function applyPriceFilter(e) {
-    e.preventDefault();
-    filter(mc, sc, rn, Number(min), Number(max));
+  // Sorting
+  function sortFilter(option) {
+    const sorted = [...data];
+    if (option === "latest") sorted.sort((x, y) => y._id.localeCompare(x._id));
+    else if (option === "price_high") sorted.sort((x, y) => y.finalPrice - x.finalPrice);
+    else if (option === "price_low") sorted.sort((x, y) => x.finalPrice - y.finalPrice);
+    else if (option === "discount_high") sorted.sort((x, y) => y.discount - x.discount);
+    else if (option === "discount_low") sorted.sort((x, y) => x.discount - y.discount);
+    setData(sorted);
   }
 
+  /** 🔹 Reusable Filter List Component */
+  const FilterList = ({ title, current, items, paramKey }) => (
+    <div className="list-group mb-3 shadow-sm rounded">
+      <span className="list-group-item active fw-bold">{title}</span>
+      <Link
+        to={`/product?mc=${paramKey === "mc" ? "All" : mc}&sc=${
+          paramKey === "sc" ? "All" : sc
+        }&rn=${paramKey === "rn" ? "All" : rn}`}
+        className={`list-group-item ${current === "All" ? "bg-primary text-white" : ""}`}
+      >
+        All
+      </Link>
+      {items
+        .filter((x) => x.active)
+        .map((item) => (
+          <Link
+            to={`/product?mc=${paramKey === "mc" ? item.name : mc}&sc=${
+              paramKey === "sc" ? item.name : sc
+            }&rn=${paramKey === "rn" ? item.name : rn}`}
+            key={item._id}
+            className={`list-group-item ${current === item.name ? "bg-primary text-white" : ""}`}
+          >
+            {item.name}
+          </Link>
+        ))}
+    </div>
+  );
+
+  /** 🔹 Filters Section (Shared for Desktop & Mobile) */
+  const Filters = () => (
+    <>
+      <FilterList title="Maincategory" current={mc} items={MaincategoryStateData} paramKey="mc" />
+      <FilterList
+        title="Subcategory"
+        current={sc}
+        items={[...new Map(SubcategoryStateData.map((s) => [s.name, s]))].map((x) => x[1])}
+        paramKey="sc"
+      />
+      <FilterList title="Restaurant" current={rn} items={ResturentStateData} paramKey="rn" />
+
+      <div className="card shadow-sm border-primary mt-3">
+        <div className="card-header bg-primary text-white fw-bold text-center">Price Filter</div>
+        <div className="card-body">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              applyFilters(mc, sc, rn, Number(min), Number(max), search);
+            }}
+          >
+            <div className="row">
+              <div className="col-6 mb-3">
+                <label className="small">Min</label>
+                <input
+                  type="number"
+                  value={min}
+                  onChange={(e) => setMin(e.target.value)}
+                  className="form-control border-primary"
+                />
+              </div>
+              <div className="col-6 mb-3">
+                <label className="small">Max</label>
+                <input
+                  type="number"
+                  value={max}
+                  onChange={(e) => setMax(e.target.value)}
+                  className="form-control border-primary"
+                />
+              </div>
+            </div>
+            <button type="submit" className="btn btn-primary w-100">
+              Apply Filter
+            </button>
+          </form>
+        </div>
+      </div>
+    </>
+  );
 
   return (
     <>
       <HeroSection title="Products" />
       <div className="container-fluid my-3">
         <div className="row">
-          <div className="col-md-2">
-            <div className="list-group">
-              <Link to="" className="list-group-item list-group-item-action active fw-bolder fs-5">
-                Apply Filter
-              </Link>
-              <hr />
-              <Link className="list-group-item list-group-item-action active">Maincategory</Link>
-              <Link to={`/product?mc=All&sc=${sc}&rn=${rn}`} className="list-group-item list-group-item-action">All</Link>
-              {MaincategoryStateData.filter((x) => x.active).map((item) => (
-                <Link key={item._id} to={`/product?mc=${item.name}&sc=${sc}&rn=${rn}`} className="list-group-item list-group-item-action">
-                  {item.name}
-                </Link>
-              ))}
-              <Link className="list-group-item list-group-item-action active">Subcategory</Link>
-              <Link to={`/product?mc=${mc}&sc=All&rn=${rn}`} className="list-group-item list-group-item-action">All</Link>
-              {Array.isArray(SubcategoryStateData) &&
-                [...new Map(SubcategoryStateData.filter((x) => x.active).map((item) => [item.name, item])).values()].map((item) => (
-                  <Link key={item._id} to={`/product?mc=${mc}&sc=${item.name}&rn=${rn}`} className="list-group-item list-group-item-action">
-                    {item.name}
-                  </Link>
-                ))}
-              <Link className="list-group-item list-group-item-action active">Restaurant</Link>
-              <Link to={`/product?mc=${mc}&sc=${sc}&rn=All`} className="list-group-item list-group-item-action">All</Link>
-              {ResturentStateData.filter((x) => x.active).map((item) => (
-                <Link key={item._id} to={`/product?mc=${mc}&sc=${sc}&rn=${item.name}`} className="list-group-item list-group-item-action">
-                  {item.name}
-                </Link>
-              ))}
-            </div>
-            <h5 className="bg-primary text-light text-center p-2">Price Filter</h5>
-            <form onSubmit={applyPriceFilter}>
-              <div className="row">
-                <div className="col-6 mb-3">
-                  <label>Minimum</label>
-                  <input type="number" value={min} placeholder="Min" onChange={(e) => setMin(e.target.value)} className="form-control border-3 border-primary" />
-                </div>
-                <div className="col-6 mb-3">
-                  <label>Maximum</label>
-                  <input type="number" value={max} placeholder="Max" onChange={(e) => setMax(e.target.value)} className="form-control border-3 border-primary" />
-                </div>
-              </div>
-              <div className="mb-5">
-                <button type="submit" className="btn btn-primary w-100">Apply Filter</button>
-              </div>
-            </form>
+          {/* Sidebar (Desktop) */}
+          <div className="col-md-2 d-none d-md-block">
+            <Filters />
           </div>
+
+          {/* Mobile Filters */}
+          <div className="col-12 d-block d-md-none mb-3">
+            <button
+              className="btn btn-primary w-100"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#mobileFilters"
+            >
+              Filter Options
+            </button>
+            <div className="collapse mt-2" id="mobileFilters">
+              <div className="card card-body shadow-sm">
+                <Filters />
+              </div>
+            </div>
+          </div>
+
+          {/* Products Section */}
           <div className="col-md-10">
+            <div className="row mb-3 align-items-center">
+              <div className="col-md-9 mb-2 mb-md-0">
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    applyFilters(mc, sc, rn, min, max, search);
+                  }}
+                >
+                  <div className="input-group shadow-sm">
+                    <input
+                      type="search"
+                      placeholder="Search products..."
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      className="form-control border-primary"
+                    />
+                    <button type="submit" className="btn btn-primary">
+                      Search
+                    </button>
+                  </div>
+                </form>
+              </div>
+              <div className="col-md-3">
+                <select
+                  onChange={(e) => sortFilter(e.target.value)}
+                  className="form-select border-primary shadow-sm"
+                >
+                  <option value="latest">Latest</option>
+                  <option value="price_high">Price: High to Low</option>
+                  <option value="price_low">Price: Low to High</option>
+                  <option value="discount_high">Discount: High to Low</option>
+                  <option value="discount_low">Discount: Low to High</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Pass filtered data */}
             <Products data={data} />
           </div>
         </div>
