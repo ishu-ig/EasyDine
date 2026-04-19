@@ -88,7 +88,16 @@ export default function Navbar() {
             </h1>
           </Link>
 
-          <button type="button" className="navbar-toggler border-0 me-3" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
+          {/* ✅ FIXED: Removed border-0 and inline color — CSS now handles toggler icon color */}
+          <button
+            type="button"
+            className="navbar-toggler me-3"
+            data-bs-toggle="collapse"
+            data-bs-target="#navbarCollapse"
+            aria-controls="navbarCollapse"
+            aria-expanded="false"
+            aria-label="Toggle navigation"
+          >
             <span className="navbar-toggler-icon"></span>
           </button>
 
