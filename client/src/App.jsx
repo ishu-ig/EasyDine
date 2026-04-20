@@ -32,6 +32,7 @@ import Payment from './pages/Payment'
 
 
 
+
 export default function App() {
   function ScrollHandler() {
   const { pathname } = useLocation();
