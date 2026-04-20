@@ -285,7 +285,7 @@ export default function AdminUpdateProduct() {
                         {/* Submit Button */}
                         <div className="mb-3">
                             <button type="submit" className="btn btn-primary w-100 text-light">
-                                <i className="fa fa-save"></i> Create Product
+                                <i className="fa fa-save"></i> Update Product
                             </button>
                         </div>
                     </form>

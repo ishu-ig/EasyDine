@@ -96,50 +96,52 @@ async function getSingleRecord(req, res) {
 
 async function updateRecord(req, res) {
     try {
-        let data = await Product.findOne({ _id: req.params._id })
-        if (data) {
-            data.name = req.body.name ?? data.name
-            data.maincategory = req.body.maincategory ?? data.maincategory
-            data.Product = req.body.Product ?? data.Product
-            data.resturent = req.body.resturent ?? data.resturent
-            data.basePrice = req.body.basePrice ?? data.basePrice
-            data.discount = req.body.discount ?? data.discount
-            data.finalPrice = req.body.finalPrice ?? data.finalPrice
-            data.description = req.body.description ?? data.description
-            data.rating = req.body.rating ?? data.rating
-            data.availability = req.body.availability ?? data.availability
-            data.active = req.body.active ?? data.active
-            if (await data.save() && req.file) {
-                try {
-                    fs.unlinkSync(data.pic)
-                } catch (error) { }
-                data.pic = req.file.path
-                await data.save()
-            }
-            let finalData = await Product.findOne({ _id: data._id })
-                .populate("maincategory", ["name"])
-                .populate("subcategory", ["name"])
-                .populate("resturent", ["name"])
-            res.send({
-                result: "Done",
-                data: finalData
-            })
+        // Use lean findOne to avoid Mongoose casting the corrupted pic array
+        let existing = await Product.findOne({ _id: req.params._id }).lean()
+
+        if (!existing) {
+            return res.status(404).send({ result: "Fail", reason: "Record Not Found" })
         }
-        else {
-            res.status(404).send({
-                result: "Fail",
-                reason: "Record Not Found"
-            })
+
+        // Normalize pic in case it's stored as an array (corrupted data fix)
+        let currentPic = Array.isArray(existing.pic) ? existing.pic[existing.pic.length - 1] : existing.pic
+
+        let updatePayload = {
+            name:         req.body.name         ?? existing.name,
+            maincategory: req.body.maincategory  ?? existing.maincategory,
+            subcategory:  req.body.subcategory   ?? existing.subcategory,   // ← was data.Product (bug!)
+            resturent:    req.body.resturent      ?? existing.resturent,
+            basePrice:    req.body.basePrice      ?? existing.basePrice,
+            discount:     req.body.discount       ?? existing.discount,
+            finalPrice:   req.body.finalPrice     ?? existing.finalPrice,
+            description:  req.body.description    ?? existing.description,
+            rating:       req.body.rating         ?? existing.rating,
+            availability: req.body.availability   ?? existing.availability,
+            active:       req.body.active         ?? existing.active,
+            pic:          currentPic,             // keep existing pic (string) by default
         }
+
+        // If a new file was uploaded, delete the old one and use the new path
+        if (req.file) {
+            try { fs.unlinkSync(currentPic) } catch (_) {}
+            updatePayload.pic = req.file.path
+        }
+
+        let finalData = await Product.findOneAndUpdate(
+            { _id: req.params._id },
+            updatePayload,
+            { new: true, runValidators: true }
+        )
+            .populate("maincategory", ["name"])
+            .populate("subcategory", ["name"])
+            .populate("resturent", ["name"])
+
+        res.send({ result: "Done", data: finalData })
+
     } catch (error) {
-        try {
-            fs.unlinkSync(req.file.path)
-        } catch (error) { }
+        try { fs.unlinkSync(req.file.path) } catch (_) {}
         console.log(error)
-        res.status(500).send({
-            result: "Fail",
-            reason: "Internal Server Error"
-        })
+        res.status(500).send({ result: "Fail", reason: "Internal Server Error" })
     }
 }
 
