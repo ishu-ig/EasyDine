@@ -81,7 +81,7 @@ export default function AdminContactUs() {
                                         {item.active ? "Yes" : "No"}
                                     </td>
                                     <td>
-                                        <Link to={`/conatactus/view/${item._id}`} className="btn btn-primary text-light" style={{ borderRadius: 8 }}>
+                                        <Link to={`/contactus/view/${item._id}`} className="btn btn-primary text-light" style={{ borderRadius: 8 }}>
                                             <i className="fa fa-eye fs-5 pt-1"></i>
                                         </Link>
                                     </td>

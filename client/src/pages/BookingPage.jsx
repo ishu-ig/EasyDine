@@ -6,7 +6,7 @@ import { getBooking } from '../Redux/ActionCreators/BookingActionCreators'
 
 export default function BookingPage() {
     let BookingStateData = useSelector(state => state.BookingStateData)
-    let [booking, setBooking] = useState([])
+    // let [booking, setBooking] = useState([])
 
     let dispatch = useDispatch()
 

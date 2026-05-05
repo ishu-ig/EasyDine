@@ -46,6 +46,7 @@ import UpdateProfilePage from './pages/UpdateProfilePage';
 import ForgetPasswordPage1 from './pages/ForgetPasswordPage1';
 import ForgetPasswordPage2 from './pages/ForgetPasswordPage2';
 import ForgetPasswordPage3 from './pages/ForgetPasswordPage3';
+import ViewProductPage from './pages/checkout/ViewProductPage';
 
 
 export default function App() {
@@ -138,6 +139,7 @@ function MainContent({ isSidebarExpanded, toggleSidebar, checkLoginStatus }) {
                     {/* Checkout Routes */}
                     <Route path="/checkout" element={<AdminCheckout />} />
                     <Route path="/checkout/view/:_id" element={<AdminCheckoutShow />} />
+                    <Route path="/checkout/product/:_id" element={<ViewProductPage />} />
 
                     {/* Booking Routes */}
                     <Route path="/booking" element={<AdminBookings />} />

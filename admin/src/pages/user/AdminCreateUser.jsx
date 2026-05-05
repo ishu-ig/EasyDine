@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import formValidator from "../../FormValidators/formValidator"
 
+
+import formValidator from '../../FormValidators/formValidator'
 export default function AdminCreateUser() {
     let [data, setData] = useState({
         name: "",
         username: "",
         email: "",
         phone: "",
-        role: "Admon",
+        role: "Admin",
         password: "",
         cpassword: "",
         active: true
@@ -16,16 +17,15 @@ export default function AdminCreateUser() {
     let [error, setError] = useState({
         name: "Name Field is Mendatory",
         username: "Username Field is Mendatory",
-        email: "Email Field is Mendatory",
-        phone: "Phone Field is Mendatory",
-        password: "Password Field is Mendatory",
+        email: "Email Address Field is Mendatory",
+        phone: "Phone Number Field is Mendatory",
+        password: "Password Field is Mendatory"
     })
     let [show, setShow] = useState(false)
     let navigate = useNavigate()
 
     function getInputData(e) {
-        let {name,value} = e.target
-        
+        let { name, value } = e.target
 
         if (name !== "active") {
             setError((old) => {
@@ -42,7 +42,7 @@ export default function AdminCreateUser() {
             }
         })
     }
-    async function postSubmit(e) {
+    async function postData(e) {
         e.preventDefault()
         if (data.password === data.cpassword) {
             let errorItem = Object.values(error).find(x => x !== "")
@@ -69,7 +69,7 @@ export default function AdminCreateUser() {
                     // body: item
                 })
                 response = await response.json()
-                if (response.result ==="Done")
+                if (response.result === "Done")
                     navigate("/user")
                 else {
                     setShow(true)
@@ -82,7 +82,6 @@ export default function AdminCreateUser() {
                     })
                 }
             }
-
         }
         else {
             setShow(true)
@@ -96,119 +95,66 @@ export default function AdminCreateUser() {
     }
     return (
         <>
-            <div className="container">
-                <h5 className="text-center text-light bg-primary p-2">Create User <Link to="/User"><i className="fa fa-arrow-left text-light float-end pt-1"></i></Link></h5>
-                {/* Form */}
+            <div>
+                <h5 className='bg-primary text-light text-center p-2'>User <Link to="/user"><i className="fa fa-arrow-left text-light float-end pt-1"></i></Link></h5>
                 <div className="card mt-3 shadow-sm p-4">
-                    <form onSubmit={postSubmit}>
-                        {/* Name Field */}
-                        <div className='row'>
-                            <div className="col-md-6 mb-3">
-                                <label className="fw-bold">Name*</label>
-                                <input
-                                    type="text"
-                                    name="name"
-                                    onChange={getInputData}
-                                    placeholder="Enter User Name"
-                                    className={`form-control ${show && error.name ? 'border-danger' : 'border-primary'}`}
-                                />
-                                {show && error.name && <p className="text-danger mt-1">{error.name}</p>}
-                            </div>
-                            <div className="col-md-6 mb-3">
-                                <label className="fw-bold">Username*</label>
-                                <input
-                                    type="text"
-                                    name="username"
-                                    onChange={getInputData}
-                                    placeholder="Enter Username"
-                                    className={`form-control ${show && error.username ? 'border-danger' : 'border-primary'}`}
-                                />
-                                {show && error.username && <p className="text-danger mt-1">{error.username}</p>}
-                            </div>
-                        </div>
-                        <div className='row'>
-                            <div className="col-md-6 mb-3">
-                                <label className="fw-bold">Email*</label>
-                                <input
-                                    type="email"
-                                    name="email"
-                                    onChange={getInputData}
-                                    placeholder="Enter Email Address"
-                                    className={`form-control ${show && error.name ? 'border-danger' : 'border-primary'}`}
-                                />
-                                {show && error.email && <p className="text-danger mt-1">{error.email}</p>}
-                            </div>
-                            <div className="col-md-6 mb-3">
-                                <label className="fw-bold">Phone*</label>
-                                <input
-                                    type="number"
-                                    name="phone"
-                                    onChange={getInputData}
-                                    placeholder="Enter Conatct Number"
-                                    className={`form-control ${show && error.username ? 'border-danger' : 'border-primary'}`}
-                                />
-                                {show && error.phone && <p className="text-danger mt-1">{error.phone}</p>}
-                            </div>
-                        </div>
-
-                        <div className='row'>
-                            <div className="col-md-6 mb-3">
-                                <label className="fw-bold">Password*</label>
-                                <input
-                                    type="passowrd"
-                                    name="password"
-                                    onChange={getInputData}
-                                    placeholder="Enter Password"
-                                    className={`form-control ${show && error.name ? 'border-danger' : 'border-primary'}`}
-                                />
-                                {show && error.password && <p className="text-danger mt-1">{error.password}</p>}
-                            </div>
-                            <div className="col-md-6 mb-3">
-                                <label className="fw-bold">Confirm Password*</label>
-                                <input
-                                    type="password"
-                                    name="cpassword"
-                                    onChange={getInputData}
-                                    placeholder="Enter Confirm Password"
-                                    className={`form-control ${show && error.password ? 'border-danger' : 'border-primary'}`}
-                                />
-                            </div>
-                        </div>
-
-                        {/* File Upload & Active Status */}
+                    <form onSubmit={postData}>
                         <div className="row">
-                            {/* File Upload */}
                             <div className="col-md-6 mb-3">
-                                <label className="fw-bold">Role</label>
-                                <select
-                                    name="role"
-                                    onChange={getInputData}
-                                    className="form-select border-primary"
-                                >
+                                <label>Name*</label>
+                                <input type="text" name="name" onChange={getInputData} placeholder='Full Name' className={`form-control border-3 ${show && error.name ? 'border-danger' : 'border-primary'}`} />
+                                {show && error.name ? <p className='text-danger'>{error.name}</p> : null}
+                            </div>
+                            <div className="col-md-6 mb-3">
+                                <label>Phone*</label>
+                                <input type="text" name="phone" onChange={getInputData} placeholder='Phone Number' className={`form-control border-3 ${show && error.phone ? 'border-danger' : 'border-primary'}`} />
+                                {show && error.phone ? <p className='text-danger'>{error.phone}</p> : null}
+                            </div>
+                        </div>
+
+                        <div className="row">
+                            <div className="col-md-6 mb-3">
+                                <label>User Name*</label>
+                                <input type="text" name="username" onChange={getInputData} placeholder='User Name' className={`form-control border-3 ${show && error.username ? 'border-danger' : 'border-primary'}`} />
+                                {show && error.username ? <p className='text-danger'>{error.username}</p> : null}
+                            </div>
+                            <div className="col-md-6 mb-3">
+                                <label>Email*</label>
+                                <input type="email" name="email" onChange={getInputData} placeholder='Email Address' className={`form-control border-3 ${show && error.email ? 'border-danger' : 'border-primary'}`} />
+                                {show && error.email ? <p className='text-danger'>{error.email}</p> : null}
+                            </div>
+                        </div>
+
+                        <div className="row">
+                            <div className="col-md-6 mb-3">
+                                <label>Password*</label>
+                                <input type="password" name="password" onChange={getInputData} placeholder='Password' className={`form-control border-3 ${show && error.password ? 'border-danger' : 'border-primary'}`} />
+                                {show && error.password ? <p className='text-danger'>{error.password}</p> : null}
+                            </div>
+                            <div className="col-md-6 mb-3">
+                                <label>Confirm Password*</label>
+                                <input type="password" name="cpassword" onChange={getInputData} placeholder='Confirm Password' className={`form-control border-3 ${show && error.password ? 'border-danger' : 'border-primary'}`} />
+                            </div>
+                        </div>
+
+                        <div className="row">
+                            <div className="col-md-6 mb-3">
+                                <select name="role" onChange={getInputData} className='form-select border-3 border-primary'>
                                     <option value="Admin">Admin</option>
                                     <option value="Super Admin">Super Admin</option>
+                                    <option value="Delivery Boy">Delivery Boy</option>
                                 </select>
                             </div>
-
-                            {/* Active Status */}
                             <div className="col-md-6 mb-3">
-                                <label className="fw-bold">Active</label>
-                                <select
-                                    name="active"
-                                    onChange={getInputData}
-                                    className="form-select border-primary"
-                                >
+                                <select name="active" onChange={getInputData} className='form-select border-3 border-primary'>
                                     <option value="1">Yes</option>
                                     <option value="0">No</option>
                                 </select>
                             </div>
                         </div>
 
-                        {/* Submit Button */}
                         <div className="mb-3">
-                            <button type="submit" className="btn btn-primary w-100 text-light">
-                                <i className="fa fa-save"></i> Create User
-                            </button>
+                            <button type="submit" className='btn btn-primary w-100'>Create</button>
                         </div>
                     </form>
                 </div>

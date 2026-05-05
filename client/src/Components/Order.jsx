@@ -5,7 +5,6 @@ import { updateBooking } from '../Redux/ActionCreators/BookingActionCreators';
 import { getResturent, updateResturent } from '../Redux/ActionCreators/ResturentActionCreators';
 import { updateCheckout } from '../Redux/ActionCreators/CheckoutActionCreators';
 
-/* ─── Design tokens ─────────────────────────────────────── */
 const C = {
   primary:       'var(--primary)',
   primaryLight:  'rgba(200,64,10,0.07)',
@@ -25,18 +24,13 @@ const C = {
 };
 
 const S = {
-  /* Page wrapper */
   page: { background: C.light, minHeight: '100vh', padding: '48px 0 80px' },
-
-  /* Page title */
   pageTitle: {
     fontFamily: "'Playfair Display', serif",
     fontSize: '2rem', fontWeight: 900,
     color: C.dark, marginBottom: 6,
   },
   pageSub: { fontSize: '0.88rem', color: C.gray, marginBottom: 36 },
-
-  /* ── Order card ── */
   card: {
     background: '#fff',
     borderRadius: C.radius,
@@ -46,8 +40,6 @@ const S = {
     marginBottom: 24,
     transition: 'box-shadow 0.3s ease, transform 0.3s ease',
   },
-
-  /* Card top header bar */
   cardHeader: {
     display: 'flex', justifyContent: 'space-between',
     alignItems: 'flex-start', flexWrap: 'wrap', gap: 12,
@@ -70,8 +62,6 @@ const S = {
     display: 'inline-block',
   },
   createdAt: { fontSize: '0.78rem', color: C.gray, marginTop: 6, display: 'flex', alignItems: 'center', gap: 6 },
-
-  /* Status pill */
   statusPill: (ok) => ({
     display: 'inline-flex', alignItems: 'center', gap: 6,
     padding: '5px 14px', borderRadius: 50,
@@ -86,11 +76,7 @@ const S = {
     animation: ok ? 'pulse 2s infinite' : 'none',
     flexShrink: 0,
   }),
-
-  /* Card body */
   cardBody: { padding: '0 24px' },
-
-  /* Items list */
   itemRow: {
     display: 'flex', alignItems: 'center',
     justifyContent: 'space-between', flexWrap: 'wrap',
@@ -116,8 +102,6 @@ const S = {
     fontWeight: 900, fontSize: '1rem', color: C.primary,
     textAlign: 'right', flexShrink: 0,
   },
-
-  /* Booking detail row */
   bookingRow: {
     display: 'flex', flexWrap: 'wrap', gap: 12,
     padding: '16px 0', borderBottom: `1px solid ${C.border}`,
@@ -131,8 +115,6 @@ const S = {
   bookingChipIcon: { color: C.primary, fontSize: '0.88rem', flexShrink: 0 },
   bookingChipLabel: { fontSize: '0.68rem', color: C.gray, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' },
   bookingChipVal: { fontSize: '0.85rem', fontWeight: 700, color: C.dark },
-
-  /* Card footer */
   cardFooter: {
     display: 'flex', justifyContent: 'space-between',
     alignItems: 'center', flexWrap: 'wrap', gap: 12,
@@ -148,19 +130,15 @@ const S = {
     color: pending ? '#ef4444' : '#16a34a',
     display: 'flex', alignItems: 'center', gap: 5,
   }),
-
-  /* Total amount */
   totalAmt: {
     fontFamily: "'Playfair Display', serif",
     fontSize: '1.3rem', fontWeight: 900, color: C.primary,
   },
   totalLabel: { fontSize: '0.7rem', color: C.gray, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 2 },
-
-  /* Action buttons */
   btnRow: { display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' },
   cancelBtn: {
     padding: '8px 20px', borderRadius: 50,
-    border: `1.5px solid rgba(239,68,68,0.5)`,
+    border: '1.5px solid rgba(239,68,68,0.5)',
     background: 'rgba(239,68,68,0.06)',
     color: '#ef4444', fontWeight: 700,
     fontSize: '0.82rem', cursor: 'pointer',
@@ -184,8 +162,6 @@ const S = {
     display: 'inline-flex', alignItems: 'center', gap: 6,
     transition: C.transition,
   },
-
-  /* Empty state */
   empty: {
     padding: '64px 24px', textAlign: 'center',
     background: '#fff', borderRadius: C.radius,
@@ -210,6 +186,75 @@ const S = {
   },
 };
 
+// ─── Cancellation eligibility helpers ─────────────────────────────────────────
+
+/**
+ * ORDER cancel rules:
+ *   Show cancel button when:
+ *     - COD  + paymentStatus === 'Pending'   (hasn't paid yet, can back out)
+ *     - Net Banking + paymentStatus === 'Done'  (paid online, refund path)
+ *   Hide cancel button when:
+ *     - COD  + paymentStatus === 'Done'      (paid cash on delivery, no cancel)
+ *     - Order is already Cancelled / terminal statuses
+ */
+function canCancelOrder(item) {
+  if (!item) return false;
+
+  // Already cancelled or in a terminal delivery state — never show cancel
+  const terminalStatuses = ['Cancelled', 'Delivered'];
+  if (terminalStatuses.includes(item.orderStatus)) return false;
+
+  const mode    = (item.paymentMode   || '').trim().toUpperCase();
+  const status  = (item.paymentStatus || '').trim().toLowerCase();
+  const isPaid  = status === 'done';
+  const isPending = status === 'pending';
+
+  if (mode === 'COD') {
+    // COD + Pending → allow cancel; COD + Done → disallow
+    return isPending;
+  }
+
+  // Net Banking (or any online mode) + Done → allow cancel (refund path)
+  return isPaid;
+}
+
+/**
+ * BOOKING cancel rules (same payment logic, plus time-window):
+ *   Show active cancel button when:
+ *     - Booking is still active (bookingStatus === 'true')
+ *     - AND payment conditions pass (same as order rules above)
+ *     - AND within the 5-hour cancellation window
+ *   Show disabled "Window Expired" when:
+ *     - Conditions above pass but time window has lapsed
+ *   Show nothing (or "Cancelled" badge) when:
+ *     - bookingStatus === 'false'  (already cancelled)
+ *     - OR payment conditions don't allow cancel
+ */
+function canCancelBooking(item, cancelStatus) {
+  if (!item) return { eligible: false, windowOpen: false };
+  if (item.bookingStatus !== 'true') return { eligible: false, windowOpen: false };
+
+  const mode    = (item.paymentMode   || '').trim().toUpperCase();
+  const status  = (item.paymentStatus || '').trim().toLowerCase();
+  const isPaid  = status === 'done';
+  const isPending = status === 'pending';
+
+  let paymentAllows = false;
+  if (mode === 'COD') {
+    paymentAllows = isPending;       // COD + Pending
+  } else {
+    paymentAllows = isPaid;          // Net Banking + Done
+  }
+
+  if (!paymentAllows) return { eligible: false, windowOpen: false };
+
+  // Payment allows — now check time window
+  const windowOpen = !!cancelStatus[item._id];
+  return { eligible: true, windowOpen };
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+
 export default function Order({ title, data = [] }) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -229,9 +274,13 @@ export default function Order({ title, data = [] }) {
   useEffect(() => { dispatch(getResturent()); });
 
   function updateStatus(_id) {
-    if (!cancelStatus[_id]) { alert('Cancellation is only allowed within 5 hours of booking.'); return; }
-    if (!window.confirm('Are you sure you want to cancel your booking?')) return;
     const item = data.find(x => x._id === _id);
+    const { eligible, windowOpen } = canCancelBooking(item, cancelStatus);
+    if (!eligible || !windowOpen) {
+      alert('Cancellation is only allowed within 5 hours of booking.');
+      return;
+    }
+    if (!window.confirm('Are you sure you want to cancel your booking?')) return;
     if (item) {
       dispatch(updateBooking({ ...item, bookingStatus: false }));
       setCancelStatus(p => ({ ...p, [_id]: false }));
@@ -304,7 +353,6 @@ export default function Order({ title, data = [] }) {
               {/* ── Card Body ── */}
               <div style={S.cardBody}>
                 {isOrder ? (
-                  /* Order items */
                   item?.products?.map(prod => (
                     <div key={prod._id} style={S.itemRow}>
                       <div style={{ flex: '1 1 180px' }}>
@@ -325,7 +373,6 @@ export default function Order({ title, data = [] }) {
                     </div>
                   ))
                 ) : (
-                  /* Booking detail chips */
                   <div style={S.bookingRow}>
                     <div style={S.bookingChip}>
                       <i className="fa fa-store" style={S.bookingChipIcon}></i>
@@ -389,10 +436,11 @@ export default function Order({ title, data = [] }) {
                   </div>
 
                   <div style={S.btnRow}>
+
+                    {/* ── ORDER cancel logic ── */}
                     {isOrder ? (
                       <>
-                        {!['Order Is Under Process','Order Is Placed','Out For Delivery','Delivered','Cancelled']
-                          .includes(item.orderStatus) && (
+                        {canCancelOrder(item) && (
                           <button
                             onClick={() => updateOrder(item?._id)}
                             style={S.cancelBtn}
@@ -408,38 +456,62 @@ export default function Order({ title, data = [] }) {
                         </Link>
                       </>
                     ) : (
-                      <>
-                        {item.bookingStatus === 'true' && cancelStatus[item?._id] ? (
-                          <button onClick={() => updateStatus(item?._id)} style={S.cancelBtn} className="ord-cancel">
-                            <i className="fa fa-times-circle" style={{ fontSize: '0.8rem' }}></i>
-                            Cancel Booking
-                          </button>
-                        ) : item.bookingStatus === 'false' ? (
-                          <span style={S.disabledBtn}>
-                            <i className="fa fa-ban" style={{ fontSize: '0.8rem' }}></i>
-                            Cancelled
-                          </span>
-                        ) : (
-                          <div style={{ textAlign: 'right' }}>
-                            <div style={{ fontSize: '0.72rem', color: 'var(--gray)', marginBottom: 6, maxWidth: 200 }}>
-                              <i className="fa fa-info-circle me-1" style={{ color: 'var(--primary)' }}></i>
-                              Cancellation window (5 hrs) has expired
-                            </div>
-                            <span style={S.disabledBtn}>
-                              <i className="fa fa-lock" style={{ fontSize: '0.8rem' }}></i>
-                              Expired
-                            </span>
-                          </div>
-                        )}
-                      </>
+                      /* ── BOOKING cancel logic ── */
+                      (() => {
+                        const { eligible, windowOpen } = canCancelBooking(item, cancelStatus);
+
+                        return (
+                          <>
+                            {item.bookingStatus === 'false' ? (
+                              // Already cancelled — show static badge
+                              <span style={S.disabledBtn}>
+                                <i className="fa fa-ban" style={{ fontSize: '0.8rem' }}></i>
+                                Cancelled
+                              </span>
+                            ) : eligible && windowOpen ? (
+                              // Payment allows + within window → active cancel button
+                              <button
+                                onClick={() => updateStatus(item?._id)}
+                                style={S.cancelBtn}
+                                className="ord-cancel"
+                              >
+                                <i className="fa fa-times-circle" style={{ fontSize: '0.8rem' }}></i>
+                                Cancel Booking
+                              </button>
+                            ) : eligible && !windowOpen ? (
+                              // Payment allows but window expired → disabled button
+                              <span style={{
+                                ...S.disabledBtn,
+                                border: '1.5px solid rgba(200,64,10,0.2)',
+                                background: 'rgba(200,64,10,0.04)',
+                                color: 'var(--gray)',
+                              }}>
+                                <i className="fa fa-clock" style={{ fontSize: '0.78rem', color: 'var(--primary)', opacity: 0.6 }}></i>
+                                Window Expired
+                              </span>
+                            ) : null
+                            /* COD+Done or Net Banking+Pending → render nothing (no cancel option) */
+                            }
+
+                            <Link
+                              to={`/booking-detail/${item?._id}`}
+                              style={S.viewBtn}
+                              className="ord-view"
+                            >
+                              <i className="fa fa-eye" style={{ fontSize: '0.8rem' }}></i>
+                              View Details
+                            </Link>
+                          </>
+                        );
+                      })()
                     )}
+
                   </div>
                 </div>
               </div>
 
             </div>
           )) : (
-            /* Empty state */
             <div style={S.empty}>
               <i className={`fa ${isOrder ? 'fa-shopping-bag' : 'fa-calendar-times'}`} style={S.emptyIcon}></i>
               <div style={S.emptyTitle}>No {isOrder ? 'Orders' : 'Bookings'} Yet</div>

@@ -28,76 +28,87 @@ async function order(req, res) {
     }
 }
 
+// In verifyOrder — after payment success, update status to confirmed
 async function verifyOrder(req, res) {
     try {
         var check = await Checkout.findOne({ _id: req.body.checkid })
-        check.rppid = req.body.razorpay_payment_id
-        check.paymentStatus = "Done"
-        check.paymentMode = "Net Banking"
-        await check.save()
-        res.send({ result: "Done", message: "Payment SuccessFull" });
+        if (!check) {
+            return res.status(404).json({ message: "Order not found!" });
+        }
+
+        // Verify Razorpay signature first
+        const crypto = require("crypto");
+        const generated_signature = crypto
+            .createHmac("sha256", process.env.RPSECRETKEY)
+            .update(req.body.razorpay_order_id + "|" + req.body.razorpay_payment_id)
+            .digest("hex");
+
+        if (generated_signature !== req.body.razorpay_signature) {
+            // ❌ Payment failed — delete the pending order
+            await Checkout.findByIdAndDelete(req.body.checkid);
+            return res.status(400).json({ result: "Fail", message: "Payment verification failed! Order cancelled." });
+        }
+
+        // ✅ Payment success — confirm the order
+        check.rppid = req.body.razorpay_payment_id;
+        check.paymentStatus = "Done";
+        check.paymentMode = "Net Banking";
+        check.orderStatus = "Order is Placed"; // confirm order
+        await check.save();
+
+        res.send({ result: "Done", message: "Payment Successful" });
+
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: "Internal Server Error!" });
     }
 }
+
 async function createRecord(req, res) {
     try {
-        let data = new Checkout(req.body)
-        await data.save()
+        // If Net Banking, save with "Payment Pending" status initially
+        const isNetBanking = req.body.paymentMode === "Net Banking";
+
+        let data = new Checkout({
+            ...req.body,
+            orderStatus: isNetBanking ? "Awaiting Payment" : "Order is Placed",
+            paymentStatus: isNetBanking ? "Pending" : req.body.paymentStatus,
+        });
+
+        await data.save();
+
         let finalData = await Checkout.findOne({ _id: data._id })
             .populate("user", ["name", "username", "email", "phone", "state", "city", "pin", "address"])
             .populate({
                 path: "products.product",
                 select: "name mincategory resturent basePrice pic",
                 populate: [
-                    {
-                        path: "maincategory",
-                        select: "-_id name"
-                    },
-                    {
-                        path: "resturent",
-                        select: "-_id name"
-                    }
+                    { path: "maincategory", select: "-_id name" },
+                    { path: "resturent", select: "-_id name" }
                 ],
-                options: {
-                    slice: {
-                        pic: 1
-                    }
-                }
-            })
-        res.send({
-            result: "Done",
-            data: finalData
-        })
+            });
+
+        res.send({ result: "Done", data: finalData });
+
     } catch (error) {
-
-
-        let errorMessage = {}
-        error.errors?.user ? errorMessage.user = error.errors.user.message : null
-        error.errors?.subtotal ? errorMessage.subtotal = error.errors.subtotal.message : null
-        error.errors?.shipping ? errorMessage.shipping = error.errors.shipping.message : null
-        error.errors?.total ? errorMessage.total = error.errors.total.message : null
+        let errorMessage = {};
+        error.errors?.user       ? errorMessage.user     = error.errors.user.message     : null;
+        error.errors?.subtotal   ? errorMessage.subtotal = error.errors.subtotal.message : null;
+        error.errors?.shipping   ? errorMessage.shipping = error.errors.shipping.message : null;
+        error.errors?.total      ? errorMessage.total    = error.errors.total.message    : null;
 
         if (Object.values(errorMessage).length === 0) {
-            res.status(500).send({
-                result: "Fail",
-                reason: "Internal Server Error"
-            })
-        }
-        else {
-            res.status(400).send({
-                result: "Fail",
-                reason: errorMessage
-            })
+            res.status(500).send({ result: "Fail", reason: "Internal Server Error" });
+        } else {
+            res.status(400).send({ result: "Fail", reason: errorMessage });
         }
     }
 }
-
 async function getRecord(req, res) {
     try {
         let data = await Checkout.find().sort({ _id: -1 })
             .populate("user", ["name", "username", "email", "phone", "state", "city", "pin", "address"])
+            .populate("deliveryBoy", ["name", "username", "email", "phone", "state", "city", "pin", "address"])
             .populate({
                 path: "products.product",
                 select: "name mincategory resturent basePrice pic",
@@ -135,6 +146,7 @@ async function getUserRecord(req, res) {
     try {
         let data = await Checkout.find({ user: req.params.userid }).sort({ _id: -1 })
             .populate("user", ["name", "username", "email", "phone", "address", "pin", "city", "state"])
+            .populate("deliveryBoy", ["name", "username", "email", "phone", "state", "city", "pin", "address"])
             .populate({
                 path: "products.product",
                 select: "name mincategory resturent basePrice pic",
@@ -172,6 +184,7 @@ async function getSingleRecord(req, res) {
     try {
         let data = await Checkout.findOne({ _id: req.params._id })
             .populate("user", ["name", "username", "email", "phone", "state", "city", "pin", "address"])
+            .populate("deliveryBoy", ["name", "username", "email", "phone", "state", "city", "pin", "address"])
             .populate({
                 path: "products.product",
                 select: "name mincategory resturent basePrice pic",
@@ -219,11 +232,13 @@ async function updateRecord(req, res) {
             data.orderStatus = req.body.orderStatus ?? data.orderStatus
             data.paymentMode = req.body.paymentMode ?? data.paymentMode
             data.paymentStatus = req.body.paymentStatus ?? data.paymentStatus
+            data.deliveryBoy = req.body.deliveryBoy ?? data.deliveryBoy
             data.rppid = req.body.rppid ?? data.rppid
             await data.save()
 
             let finalData = await Checkout.findOne({ _id: data._id })
                 .populate("user", ["name", "username", "email", "phone", "state", "city", "pin", "address"])
+                .populate("deliveryBoy", ["name", "username", "email", "phone", "state", "city", "pin", "address"])
                 .populate({
                     path: "products.product",
                     select: "name mincategory resturent basePrice pic",

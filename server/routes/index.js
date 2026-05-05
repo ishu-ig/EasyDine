@@ -1,9 +1,13 @@
 const Router = require("express").Router()
+const path = require("path")
+const express = require("express")
 
+const BookingInvoiceRouter = require("./BookingInvoiceRoutes")
 const BookingRouter = require("./BookingRouter")
 const CartRouter = require("./CartRouter")
 const CheckoutRouter = require("./CheckoutRouter")
 const ContactUsRouter = require("./ContactUsRouter")
+const InvoiceRouter = require("./InvoiceRoutes")
 const MaincategoryRouter = require("./MaincategoryRouter")
 const NewsletterRouter = require("./NewsletterRouter")
 const ProductRouter = require("./ProductRouter")
@@ -25,5 +29,10 @@ Router.use("/cart", CartRouter)
 Router.use("/wishlist", WishlistRouter)
 Router.use("/booking", BookingRouter)
 Router.use("/checkout", CheckoutRouter)
+Router.use("/invoice", InvoiceRouter)
+Router.use("/bookinginvoice", BookingInvoiceRouter)
+
+Router.use("/invoices", express.static(path.join(__dirname, "../public/invoices")))
+Router.use("/bookingInvoices", express.static(path.join(__dirname, "../public/bookingInvoices")))
 
 module.exports = Router

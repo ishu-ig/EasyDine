@@ -30,6 +30,10 @@ const CheckoutSchema = new mongoose.Schema({
         type: Number,
         required: [true, "Total Feild is Mendatory"]
     },
+    deliveryBoy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+    },
     rppid: {
         type: String,
         default: ""

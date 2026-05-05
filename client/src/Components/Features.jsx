@@ -1,4 +1,5 @@
 import React from 'react'
+import { Link } from 'react-router-dom';
 
 const features = [
     {
@@ -154,8 +155,9 @@ export default function Features() {
                                     </p>
 
                                     {/* CTA Link */}
-                                    <a
-                                        href="#"
+                                    <Link
+                                        to="/feature-detail" 
+                                        state={{ title: title }}
                                         className="feat-link"
                                         style={{
                                             display: 'inline-flex', alignItems: 'center', gap: '7px',
@@ -169,7 +171,7 @@ export default function Features() {
                                     >
                                         Read More
                                         <i className="fa fa-arrow-right" style={{ fontSize: '10px' }}></i>
-                                    </a>
+                                    </Link>
                                 </div>
                             </div>
                         ))}

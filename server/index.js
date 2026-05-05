@@ -25,6 +25,9 @@ app.use(cors(corsOptions))
 
 app.use(express.json())                     //used to parse incomming json data
 app.use("/public", express.static("public"))//used to server public files like uploaded images
+app.use("/invoices", express.static(path.join(__dirname, "public/invoices")))
+app.use("/bookingInvoices", express.static(path.join(__dirname, "public/bookingInvoices")))
+
 app.use("/api",Router)
 
 // Serve React frontend

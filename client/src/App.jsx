@@ -28,6 +28,8 @@ import ForgetPasswordPage1 from './pages/ForgetPasswordPage1'
 import ForgetPasswordPage2 from './pages/ForgetPasswordPage2'
 import ForgetPasswordPage3 from './pages/ForgetPasswordPage3'
 import Payment from './pages/Payment'
+import BookingDetailPage from './pages/BookingDetailPage'
+import FeatureDetail from './pages/FeatureDetailPage'
 
 
 
@@ -75,6 +77,8 @@ export default function App() {
           <Route path='/order' element={<OrderPage />} />
           <Route path='/order-detail/:_id' element={<OrderDetailPage />} />
           <Route path='/wishlist' element={<WishlistPage />} />
+          <Route path='/booking-detail/:_id' element={<BookingDetailPage />} />
+          <Route path='/feature-detail' element={<FeatureDetail />} />
 
         </Routes>
         <Footer />

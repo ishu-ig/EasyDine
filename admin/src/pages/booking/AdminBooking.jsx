@@ -58,7 +58,7 @@ export default function AdminBookings() {
                                 <tr key={item._id}>
                                     <td>{item._id}</td>
                                     <td>{item.resturent?.name}</td>
-                                    <td>{item.user.username}</td>
+                                    <td>{item.user?.username}</td>
                                     <td>{item.date}</td>
                                     <td>{item.time}</td>
                                     <td>{item.seats}</td>

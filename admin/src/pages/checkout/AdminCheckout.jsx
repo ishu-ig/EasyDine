@@ -1,182 +1,115 @@
-import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { Link } from "react-router-dom";
-import $ from "jquery";
-import "datatables.net-dt/css/dataTables.dataTables.min.css";
-import "datatables.net";
-import {
-  deleteCheckout,
-  getCheckout,
-} from "../../Redux/ActionCreators/CheckoutActionCreators";
+import React, { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { Link } from 'react-router-dom';
+import $ from 'jquery';
+import 'datatables.net-dt/css/dataTables.dataTables.min.css';
+import 'datatables.net';
+import { deleteCheckout, getCheckout } from '../../Redux/ActionCreators/CheckoutActionCreators';
 
 export default function AdminCheckout() {
-  const CheckoutStateData = useSelector((state) => state.CheckoutStateData);
-  const dispatch = useDispatch();
-  const [expandedRow, setExpandedRow] = useState(null);
+    const CheckoutStateData = useSelector(state => state.CheckoutStateData);
+    const dispatch = useDispatch();
 
-  const deleteRecord = (id) => {
-    if (window.confirm("Are You Sure To Delete This Order?")) {
-      dispatch(deleteCheckout({ id: id }));
-      getAPIData();
+    const deleteRecord = (_id) => {
+        if (window.confirm("Are you sure you want to delete this order?")) {
+            dispatch(deleteCheckout({ _id }));
+            getAPIData();
+        }
+    };
+
+    function getAPIData() {
+        dispatch(getCheckout());
+        const time = setTimeout(() => {
+            if (!$.fn.DataTable.isDataTable('#DataTable')) {
+                $('#DataTable').DataTable({ responsive: true, order: [[6, 'desc']] });
+            }
+        }, 500);
+        return time;
     }
-  };
 
-  const getAPIData = () => {
-    dispatch(getCheckout());
-  };
+    useEffect(() => {
+        const time = getAPIData();
+        return () => clearTimeout(time);
+    }, [CheckoutStateData.length]);
 
-  useEffect(() => {
-    getAPIData();
-  }, []);
+    const statusColors = {
+        "Ordered": "info", "Packed": "warning", "Shipped": "warning",
+        "Out for Delivery": "warning", "Delivered": "success", "Cancelled": "danger"
+    };
 
-  // Debugging log
-  useEffect(() => {
-    console.log("CheckoutStateData:", CheckoutStateData);
-  }, [CheckoutStateData]);
+    return (
+        <div className="fade-in-up">
+            <div className="page-header mb-4">
+                <h5 className='text-light bg-primary'><i className="fas fa-shopping-cart me-2  "></i>Checkout Orders</h5>
+                <span style={{ fontSize: "14px", background: "rgba(255,255,255,0.15)", padding: "4px 12px", borderRadius: "20px" }}>
+                    {CheckoutStateData?.length} orders
+                </span>
+            </div>
 
-  // Initialize DataTable after rendering
-  useEffect(() => {
-    if (CheckoutStateData && CheckoutStateData.length > 0) {
-      if ($.fn.DataTable.isDataTable("#DataTable")) {
-        $("#DataTable").DataTable().destroy();
-      }
-      setTimeout(() => {
-        $("#DataTable").DataTable();
-      }, 0);
-    }
-  }, [CheckoutStateData]);
-
-  return (
-    <div className="container-fluid">
-      <h5 className="bg-primary text-light text-center p-3">Checkout</h5>
-      <div className="table-responsive">
-        <table
-          id="DataTable"
-          className="table table-striped table-hover table-bordered text-center"
-        >
-          <thead className="text-light" style={{ backgroundColor: "#1F2A40" }}>
-            <tr>
-              <th>ID</th>
-              <th>User</th>
-              <th>Order Status</th>
-              <th>Payment Mode</th>
-              <th>Payment Status</th>
-              <th>Total</th>
-              <th>Date</th>
-              <th>Products</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {CheckoutStateData?.map((order) => (
-              <React.Fragment key={order?._id}>
-                <tr>
-                  <td className="fw-bold">{order?._id}</td>
-                  <td>{order?.user?.name || "N/A"}</td>
-                  <td
-                    className={`fw-bold ${
-                      order?.orderStatus !== "Cancelled" ? "" : "text-danger"
-                    }`}
-                  >
-                    {order?.orderStatus}
-                  </td>
-                  <td>{order?.paymentMode}</td>
-                  <td>
-                    <span
-                      className={`fw-bold ${
-                        order?.paymentStatus === "Pending"
-                          ? "text-danger"
-                          : "text-success"
-                      }`}
-                    >
-                      {order?.paymentStatus}
-                    </span>
-                  </td>
-                  <td className="fw-bold text-primary">₹{order?.total}</td>
-                  <td>{new Date(order?.createdAt).toLocaleDateString()}</td>
-                  <td>
-                    <button
-                      className="btn btn-sm bg-primary text-light"
-                      onClick={() =>
-                        setExpandedRow(
-                          expandedRow === order?._id ? null : order?._id
-                        )
-                      }
-                    >
-                      {expandedRow === order?._id
-                        ? "Hide Products"
-                        : "View Products"}
-                    </button>
-                  </td>
-                  <td>
-                    <Link
-                      to={`/checkout/view/${order?._id}`}
-                      className="btn btn-primary text-light btn-sm me-2"
-                      title="View Order"
-                    >
-                      <i className="fa fa-eye"></i>
-                    </Link>
-                    <button
-                      className="btn btn-danger text-light btn-sm"
-                      onClick={() => deleteRecord(order?._id)}
-                      title="Delete Order"
-                    >
-                      <i className="fa fa-trash"></i>
-                    </button>
-                  </td>
-                </tr>
-
-                {expandedRow === order?._id && (
-                  <tr>
-                    <td colSpan="9">
-                      <div className="card p-3 border">
-                        <h6 className="text-center mb-3 bg-primary p-2 text-light">
-                          Order Items
-                        </h6>
-                        <div className="table-responsive">
-                          <table className="table table-sm table-bordered text-center">
-                            <thead className="table-light text-center">
-                              <tr>
-                                <th>Name</th>
-                                <th>Category</th>
-                                <th>Quantity</th>
-                                <th>Price</th>
+            <div className="table-card">
+                <div className="table-responsive">
+                    <table id="DataTable" className="table" style={{ width: "100%" }}>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Customer</th>
+                                <th>Order Status</th>
+                                <th>Payment Mode</th>
+                                <th>Payment Status</th>
                                 <th>Total</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {order?.products?.length > 0 ? (
-                                order.products.map((item) => (
-                                  <tr key={item?._id}>
-                                    <td>{item?.product?.name || "N/A"}</td>
-                                    <td>
-                                      {item?.product?.maincategory?.name ||
-                                        "N/A"}
+                                <th>Date</th>
+                                <th>Products</th>
+                                <th>View</th>
+                                <th>Delete</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {CheckoutStateData?.map((order) => (
+                                <tr key={order?._id}>
+                                    <td style={{ fontFamily: "monospace", fontSize: "12px", color: "var(--text-muted)", maxWidth: "100px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                        {order?._id}
                                     </td>
-                                    <td>{item?.qty}</td>
+                                    <td style={{ fontWeight: 600 }}>{order?.user?.name || "N/A"}</td>
                                     <td>
-                                      ₹{item?.product?.finalPrice || 0}
+                                        <span className={`badge-status ${statusColors[order?.orderStatus] || "info"}`}>
+                                            {order?.orderStatus}
+                                        </span>
                                     </td>
-                                    <td>₹{item?.total || 0}</td>
-                                  </tr>
-                                ))
-                              ) : (
-                                <tr>
-                                  <td colSpan="5">No Products Found</td>
+                                    <td>{order?.paymentMode}</td>
+                                    <td>
+                                        <div style={{ fontSize: "12px" }}>
+                                            <div style={{ color: "var(--text-muted)", marginBottom: "2px" }}>{order?.paymentMode}</div>
+                                            <span className={`badge-status ${order?.paymentStatus === "Pending" ? "danger" : "success"}`} style={{ fontSize: "11px" }}>
+                                                {order?.paymentStatus}
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td style={{ fontWeight: 700, color: "var(--primary)" }}>₹{order?.total}</td>
+                                    <td style={{ whiteSpace: "nowrap", color: "var(--text-muted)", fontSize: "13px" }}>
+                                        {new Date(order?.createdAt).toLocaleDateString()}
+                                    </td>
+                                    <td>
+                                        <Link to={`/checkout/product/${order?._id}`} className="btn btn-primary btn-sm text-light">
+                                            <i className="fas fa-boxes me-1"></i>
+                                            <span className="d-none d-sm-inline">Items</span>
+                                        </Link>
+                                    </td>
+                                    <td>
+                                        <Link to={`/checkout/view/${order?._id}`} className="btn btn-primary btn-sm text-light">
+                                            <i className="fas fa-eye"></i>
+                                        </Link>
+                                    </td>
+                                    <td>
+                                        <button className='btn btn-danger btn-sm' onClick={() => deleteRecord(order._id)}>
+                                            <i className='fas fa-trash'></i>
+                                        </button>
+                                    </td>
                                 </tr>
-                              )}
-                            </tbody>
-                          </table>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                )}
-              </React.Fragment>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    );
 }
