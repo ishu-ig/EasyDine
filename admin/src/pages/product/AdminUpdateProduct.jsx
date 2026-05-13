@@ -83,11 +83,11 @@ export default function AdminUpdateProduct() {
 
             //in case of real backend and form has a file field
             let formData = new FormData()
-            formData.append("_id", data._id)
+            formData.append("_id", data?._id)
             formData.append("name", data.name)
-            formData.append("maincategory", data.maincategory ? data.maincategory : MaincategoryStateData[0]._id)
-            formData.append("subcategory", data.subcategory ? data.subcategory : SubcategoryStateData[0]._id)
-            formData.append("resturent", data.resturent ? data.resturent : MaincategoryStateData[0]._id)
+            formData.append("maincategory", data.maincategory ? data.maincategory : MaincategoryStateData[0]?._id)
+            formData.append("subcategory", data.subcategory ? data.subcategory : SubcategoryStateData[0]?._id)
+            formData.append("resturent", data.resturent ? data.resturent : MaincategoryStateData[0]?._id)
             formData.append("basePrice", bp)
             formData.append("discount", d)
             formData.append("finalPrice", fp)
@@ -127,9 +127,9 @@ export default function AdminUpdateProduct() {
                 if (item)
                     setData({
                         ...item,
-                        maincategory: item.maincategory._id,
-                        subcategory: item.subcategory._id,
-                        resturent: item.resturent._id,
+                        maincategory: item.maincategory?._id,
+                        subcategory: item.subcategory?._id,
+                        resturent: item.resturent?._id,
                     })
                 rte = new window.RichTextEditor(refdiv.current);
                 rte.setHTMLCode(item.description);
