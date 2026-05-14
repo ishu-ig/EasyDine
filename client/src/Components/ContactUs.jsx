@@ -1,5 +1,8 @@
 import React, { useState } from 'react'
+import { useDispatch } from "react-redux";
 import HeroSection from '../Components/HeroSection'
+import formValidator from '../FormValidators/formValidator';
+import { createContactUs } from '../Redux/ActionCreators/ContactUsActionCreators';
 
 const C = {
     primary: '#C8400A', primaryLight: 'rgba(200,64,10,0.08)',
@@ -16,30 +19,64 @@ const infoCards = [
 export default function ContactUsPage() {
     const [formData, setFormData] = useState({ name: '', email: '', subject: '', message: '' });
     const [submitted, setSubmitted] = useState(false);
-    const [errors, setErrors] = useState({});
+    let dispatch = useDispatch()
+
+    // FIX 1: Removed unused 'phone' field (no phone input exists).
+    // FIX 2: Start with empty strings — errors only show after the user touches a field.
+    const [errors, setErrors] = useState({ name: '', email: '', subject: '', message: '' });
+
+    // FIX 3: Track which fields the user has interacted with, so errors don't flash on load.
+    const [touched, setTouched] = useState({ name: false, email: false, subject: false, message: false });
 
     function handleChange(e) {
-        setFormData(old => ({ ...old, [e.target.name]: e.target.value }));
-        setErrors(old => ({ ...old, [e.target.name]: '' }));
+        const { name, value } = e.target;
+        // FIX 4: formValidator may return undefined; fall back to empty string.
+        setErrors(old => ({ ...old, [name]: formValidator(e) || '' }));
+        setFormData(old => ({ ...old, [name]: value }));
+    }
+
+    function handleBlur(e) {
+        const { name } = e.target;
+        setTouched(old => ({ ...old, [name]: true }));
     }
 
     function handleSubmit(e) {
-        e.preventDefault();
-        const errs = {};
-        if (!formData.name.trim()) errs.name = 'Name is required';
-        if (!formData.email.trim()) errs.email = 'Email is required';
-        if (!formData.message.trim()) errs.message = 'Message is required';
-        if (Object.keys(errs).length) { setErrors(errs); return; }
-        setSubmitted(true);
-    }
+    e.preventDefault();
+ 
+    // Mark all fields as touched so errors become visible on submit attempt.
+    setTouched({ name: true, email: true, subject: true, message: true });
+ 
+    const validationErrors = {
+        name:    formData.name.trim()    ? '' : 'Name is required',
+        email:   formData.email.trim()   ? '' : 'Email is required',
+        subject: formData.subject.trim() ? '' : 'Subject is required',
+        message: formData.message.trim() ? '' : 'Message is required',
+    };
+    setErrors(validationErrors);
+ 
+    const hasError = Object.values(validationErrors).some(err => err !== '');
+    if (hasError) return;
+ 
+    // ✅ Dispatch the action with form data.
+    dispatch(createContactUs({ ...formData, active: true, date: new Date() }));
+    setSubmitted(true);
+}
+    // FIX 6: hasError is now a proper boolean (!!string), not a truthy string.
+    const inputStyle = (fieldName) => {
+        const hasError = touched[fieldName] && !!errors[fieldName];
+        return {
+            width: '100%', padding: '12px 14px 12px 40px',
+            border: `1.5px solid ${hasError ? '#E24B4A' : 'rgba(200,64,10,0.22)'}`,
+            borderRadius: 10, fontSize: '0.9rem', background: '#fff', color: C.dark,
+            outline: 'none', boxSizing: 'border-box', fontFamily: "'DM Sans',sans-serif",
+            transition: 'border-color 0.2s'
+        };
+    };
 
-    const inputStyle = (hasError) => ({
-        width: '100%', padding: '12px 14px 12px 40px',
-        border: `1.5px solid ${hasError ? '#E24B4A' : 'rgba(200,64,10,0.22)'}`,
-        borderRadius: 10, fontSize: '0.9rem', background: '#fff', color: C.dark,
-        outline: 'none', boxSizing: 'border-box', fontFamily: "'DM Sans',sans-serif",
-        transition: 'border-color 0.2s'
-    });
+    // Helper: only show an error message if the field has been touched.
+    const showError = (field) => touched[field] && errors[field]
+        ? <p style={{ color: '#A32D2D', fontSize: '0.78rem', margin: '5px 0 0' }}>{errors[field]}</p>
+        : null;
 
     return (
         <>
@@ -88,7 +125,13 @@ export default function ContactUsPage() {
                                     </div>
                                     <h4 style={{ fontFamily: "'Playfair Display',serif", color: C.dark, marginBottom: 8 }}>Message Sent!</h4>
                                     <p style={{ color: C.gray, fontSize: '0.9rem', marginBottom: 20 }}>Thank you for reaching out. We'll get back to you soon.</p>
-                                    <button onClick={() => { setSubmitted(false); setFormData({ name: '', email: '', subject: '', message: '' }); }}
+                                    <button
+                                        onClick={() => {
+                                            setSubmitted(false);
+                                            setFormData({ name: '', email: '', subject: '', message: '' });
+                                            setErrors({ name: '', email: '', subject: '', message: '' });
+                                            setTouched({ name: false, email: false, subject: false, message: false });
+                                        }}
                                         style={{ padding: '10px 24px', background: C.primaryLight, color: C.primary, border: 'none', borderRadius: 50, fontWeight: 600, cursor: 'pointer', fontFamily: "'DM Sans',sans-serif", fontSize: '0.85rem' }}>
                                         Send Another Message
                                     </button>
@@ -96,18 +139,19 @@ export default function ContactUsPage() {
                             ) : (
                                 <>
                                     <h5 style={{ fontFamily: "'Playfair Display',serif", fontWeight: 700, color: C.dark, marginBottom: 24, fontSize: '1.2rem' }}>Send a Message</h5>
-                                    <form onSubmit={handleSubmit}>
+                                    <form onSubmit={handleSubmit} noValidate>
+
                                         {/* Name */}
                                         <div style={{ marginBottom: 18 }}>
                                             <label style={{ display: 'block', fontWeight: 600, fontSize: '0.82rem', color: C.dark, marginBottom: 7, letterSpacing: '0.02em' }}>Full Name</label>
                                             <div style={{ position: 'relative' }}>
                                                 <span style={{ position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)', color: C.primary, fontSize: 13, pointerEvents: 'none' }}><i className="fa fa-user"></i></span>
-                                                <input type="text" name="name" value={formData.name} onChange={handleChange} placeholder="Your full name" style={inputStyle(errors.name)}
+                                                <input type="text" name="name" value={formData.name} onChange={handleChange} onBlur={handleBlur} placeholder="Your full name" style={inputStyle('name')}
                                                     onFocus={e => e.target.style.borderColor = C.primary}
-                                                    onBlur={e => e.target.style.borderColor = errors.name ? '#E24B4A' : 'rgba(200,64,10,0.22)'}
+                                                    onBlur={e => { handleBlur(e); e.target.style.borderColor = (touched.name && errors.name) ? '#E24B4A' : 'rgba(200,64,10,0.22)'; }}
                                                 />
                                             </div>
-                                            {errors.name && <p style={{ color: '#A32D2D', fontSize: '0.78rem', margin: '5px 0 0' }}>{errors.name}</p>}
+                                            {showError('name')}
                                         </div>
 
                                         {/* Email */}
@@ -115,12 +159,12 @@ export default function ContactUsPage() {
                                             <label style={{ display: 'block', fontWeight: 600, fontSize: '0.82rem', color: C.dark, marginBottom: 7, letterSpacing: '0.02em' }}>Email Address</label>
                                             <div style={{ position: 'relative' }}>
                                                 <span style={{ position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)', color: C.primary, fontSize: 13, pointerEvents: 'none' }}><i className="fa fa-envelope"></i></span>
-                                                <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="your@email.com" style={inputStyle(errors.email)}
+                                                <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="your@email.com" style={inputStyle('email')}
                                                     onFocus={e => e.target.style.borderColor = C.primary}
-                                                    onBlur={e => e.target.style.borderColor = errors.email ? '#E24B4A' : 'rgba(200,64,10,0.22)'}
+                                                    onBlur={e => { handleBlur(e); e.target.style.borderColor = (touched.email && errors.email) ? '#E24B4A' : 'rgba(200,64,10,0.22)'; }}
                                                 />
                                             </div>
-                                            {errors.email && <p style={{ color: '#A32D2D', fontSize: '0.78rem', margin: '5px 0 0' }}>{errors.email}</p>}
+                                            {showError('email')}
                                         </div>
 
                                         {/* Subject */}
@@ -128,11 +172,12 @@ export default function ContactUsPage() {
                                             <label style={{ display: 'block', fontWeight: 600, fontSize: '0.82rem', color: C.dark, marginBottom: 7, letterSpacing: '0.02em' }}>Subject</label>
                                             <div style={{ position: 'relative' }}>
                                                 <span style={{ position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)', color: C.primary, fontSize: 13, pointerEvents: 'none' }}><i className="fa fa-tag"></i></span>
-                                                <input type="text" name="subject" value={formData.subject} onChange={handleChange} placeholder="What is this about?" style={inputStyle(false)}
+                                                <input type="text" name="subject" value={formData.subject} onChange={handleChange} placeholder="What is this about?" style={inputStyle('subject')}
                                                     onFocus={e => e.target.style.borderColor = C.primary}
-                                                    onBlur={e => e.target.style.borderColor = 'rgba(200,64,10,0.22)'}
+                                                    onBlur={e => { handleBlur(e); e.target.style.borderColor = 'rgba(200,64,10,0.22)'; }}
                                                 />
                                             </div>
+                                            {showError('subject')}
                                         </div>
 
                                         {/* Message */}
@@ -141,12 +186,12 @@ export default function ContactUsPage() {
                                             <div style={{ position: 'relative' }}>
                                                 <span style={{ position: 'absolute', left: 13, top: 14, color: C.primary, fontSize: 13, pointerEvents: 'none' }}><i className="fa fa-comment"></i></span>
                                                 <textarea name="message" value={formData.message} onChange={handleChange} placeholder="Tell us how we can help you…" rows={5}
-                                                    style={{ ...inputStyle(errors.message), padding: '12px 14px 12px 40px', resize: 'none', lineHeight: 1.6 }}
+                                                    style={{ ...inputStyle('message'), padding: '12px 14px 12px 40px', resize: 'none', lineHeight: 1.6 }}
                                                     onFocus={e => e.target.style.borderColor = C.primary}
-                                                    onBlur={e => e.target.style.borderColor = errors.message ? '#E24B4A' : 'rgba(200,64,10,0.22)'}
+                                                    onBlur={e => { handleBlur(e); e.target.style.borderColor = (touched.message && errors.message) ? '#E24B4A' : 'rgba(200,64,10,0.22)'; }}
                                                 />
                                             </div>
-                                            {errors.message && <p style={{ color: '#A32D2D', fontSize: '0.78rem', margin: '5px 0 0' }}>{errors.message}</p>}
+                                            {showError('message')}
                                         </div>
 
                                         <button type="submit" style={{ width: '100%', padding: 13, background: C.primary, color: '#fff', border: 'none', borderRadius: 50, fontSize: '0.95rem', fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans',sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, transition: 'all 0.3s' }}
