@@ -9,10 +9,6 @@ const ContactUsSchema = new mongoose.Schema({
         type: String,
         required: [true, "Email Is Mendatory"]
     },
-    phone: {
-        type: Number,
-        required: [true, "Contact Number Is Mendatory"]
-    },
     subject: {
         type: String,
         required: [true, "Subject Is Mendatory"]

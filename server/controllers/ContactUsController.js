@@ -45,7 +45,6 @@ async function createRecord(req, res) {
         let errorMessage = {}
         error.errors?.name ? errorMessage.name = error.errors.name.message : null
         error.errors?.email ? errorMessage.email = error.errors.email.message : null
-        error.errors?.phone ? errorMessage.phone = error.errors.phone.message : null
         error.errors?.subject ? errorMessage.subject = error.errors.subject.message : null
         error.errors?.message ? errorMessage.message = error.errors.message.message : null
 
