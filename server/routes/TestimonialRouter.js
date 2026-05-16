@@ -11,10 +11,10 @@ const { createRecord,
 
 
 
-TestimonialRouter.post("", testimonialUploader.single("pic"), createRecord)
+TestimonialRouter.post("",verifyBoth, testimonialUploader.single("pic"), createRecord)
 TestimonialRouter.get("", getRecord)
 TestimonialRouter.get("/:_id", getSingleRecord)
-TestimonialRouter.put("/:_id", testimonialUploader.single("pic"), updateRecord)
+TestimonialRouter.put("/:_id",verifyBoth, testimonialUploader.single("pic"), updateRecord)
 TestimonialRouter.delete("/:_id", verifyAdmin, deleteRecord)
 
 module.exports = TestimonialRouter

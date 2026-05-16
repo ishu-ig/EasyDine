@@ -13,10 +13,10 @@ const { createRecord,
 
 
 
-BookingRouter.post("" ,createRecord);
+BookingRouter.post("" ,verifyBoth, createRecord);
 BookingRouter.get("", verifyAdmin, getRecord);
 BookingRouter.get("/user/:userid", verifyBoth, getUserRecord);
-BookingRouter.get("/single/:_id", getSingleRecord);
+BookingRouter.get("/single/:_id",verifyBoth, getSingleRecord);
 BookingRouter.put("/:_id", verifyBoth, updateRecord);
 BookingRouter.delete("/:_id", verifyBoth, deleteRecord);
 BookingRouter.post("/order", verifyBoth, order);

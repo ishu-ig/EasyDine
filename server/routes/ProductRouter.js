@@ -15,9 +15,9 @@ const {
 
 // ── Product CRUD ──────────────────────────────────────────────────────────────
 ProductRouter.post(   "",      verifyAdmin, productUploader.single("pic"), createRecord)
-ProductRouter.get(    "",                                                   getRecord)
-ProductRouter.get(    "/:_id",                                              getSingleRecord)
-ProductRouter.put(    "/:_id", verifyAdmin, productUploader.single("pic"), updateRecord)
+ProductRouter.get(    "",                                                  getRecord)
+ProductRouter.get(    "/:_id",                                      getSingleRecord)
+ProductRouter.put(    "/:_id", verifyBoth, productUploader.single("pic"), updateRecord)
 ProductRouter.delete( "/:_id", verifyAdmin,                                deleteRecord)
 
 // ── Review routes  ────────────────────────────────────────────────────────────
