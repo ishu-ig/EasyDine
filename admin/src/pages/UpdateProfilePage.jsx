@@ -74,7 +74,7 @@ export default function UpdateProfilePage() {
                 response = await response.json();
                 if (response.result === "Done") {
                     setData(response.data);
-                    if (response.data.pic) setPreview(`${process.env.REACT_APP_BACKEND_SERVER}/${response.data.pic}`);
+                    if (response.data.pic) setPreview(response.data.pic);
                 }
             } catch { alert("Internal Server Error"); }
         })();
