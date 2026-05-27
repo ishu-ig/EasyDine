@@ -186,49 +186,37 @@ const S = {
   },
 };
 
-// ─── Cancellation eligibility helpers ─────────────────────────────────────────
+// ── Non-cancellable order statuses ────────────────────────────────────────────
+const NON_CANCELLABLE_ORDER_STATUSES = ['Cancelled', 'Delivered', 'Out for Delivery'];
 
 /**
  * ORDER cancel rules:
- *   Show cancel button when:
- *     - COD  + paymentStatus === 'Pending'   (hasn't paid yet, can back out)
- *     - Net Banking + paymentStatus === 'Done'  (paid online, refund path)
- *   Hide cancel button when:
- *     - COD  + paymentStatus === 'Done'      (paid cash on delivery, no cancel)
- *     - Order is already Cancelled / terminal statuses
+ *   - Hide if order is Cancelled, Delivered, or Out for Delivery
+ *   - COD  + paymentStatus Pending  → allow cancel
+ *   - Online + paymentStatus Done   → allow cancel (refund path)
+ *   - COD  + paymentStatus Done     → disallow (cash already collected)
+ *   - Online + paymentStatus Pending → disallow
  */
 function canCancelOrder(item) {
   if (!item) return false;
 
-  // Already cancelled or in a terminal delivery state — never show cancel
-  const terminalStatuses = ['Cancelled', 'Delivered'];
-  if (terminalStatuses.includes(item.orderStatus)) return false;
+  if (NON_CANCELLABLE_ORDER_STATUSES.includes(item.orderStatus)) return false;
 
   const mode    = (item.paymentMode   || '').trim().toUpperCase();
   const status  = (item.paymentStatus || '').trim().toLowerCase();
-  const isPaid  = status === 'done';
+  const isPaid    = status === 'done';
   const isPending = status === 'pending';
 
-  if (mode === 'COD') {
-    // COD + Pending → allow cancel; COD + Done → disallow
-    return isPending;
-  }
-
-  // Net Banking (or any online mode) + Done → allow cancel (refund path)
-  return isPaid;
+  if (mode === 'COD') return isPending;
+  return isPaid; // Online payment — allow cancel for refund
 }
 
 /**
- * BOOKING cancel rules (same payment logic, plus time-window):
- *   Show active cancel button when:
- *     - Booking is still active (bookingStatus === 'true')
- *     - AND payment conditions pass (same as order rules above)
- *     - AND within the 5-hour cancellation window
- *   Show disabled "Window Expired" when:
- *     - Conditions above pass but time window has lapsed
- *   Show nothing (or "Cancelled" badge) when:
- *     - bookingStatus === 'false'  (already cancelled)
- *     - OR payment conditions don't allow cancel
+ * BOOKING cancel rules:
+ *   - bookingStatus must be 'true' (active)
+ *   - Same payment conditions as order rules
+ *   - Must be within the 5-hour cancellation window
+ *   Returns { eligible, windowOpen }
  */
 function canCancelBooking(item, cancelStatus) {
   if (!item) return { eligible: false, windowOpen: false };
@@ -236,24 +224,23 @@ function canCancelBooking(item, cancelStatus) {
 
   const mode    = (item.paymentMode   || '').trim().toUpperCase();
   const status  = (item.paymentStatus || '').trim().toLowerCase();
-  const isPaid  = status === 'done';
+  const isPaid    = status === 'done';
   const isPending = status === 'pending';
 
   let paymentAllows = false;
   if (mode === 'COD') {
-    paymentAllows = isPending;       // COD + Pending
+    paymentAllows = isPending;
   } else {
-    paymentAllows = isPaid;          // Net Banking + Done
+    paymentAllows = isPaid;
   }
 
   if (!paymentAllows) return { eligible: false, windowOpen: false };
 
-  // Payment allows — now check time window
   const windowOpen = !!cancelStatus[item._id];
   return { eligible: true, windowOpen };
 }
 
-// ──────────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
 
 export default function Order({ title, data = [] }) {
   const dispatch = useDispatch();
@@ -262,16 +249,18 @@ export default function Order({ title, data = [] }) {
   const ResturentStateData = useSelector(state => state.ResturentStateData);
   const isOrder = title === 'Order';
 
+  // Compute 5-hour cancellation window for each booking
   useEffect(() => {
     const updated = {};
     data.forEach(item => {
-      const diff = (Date.now() - new Date(item.createdAt).getTime()) / 3_600_000;
-      updated[item._id] = diff <= 5;
+      const hoursElapsed = (Date.now() - new Date(item.createdAt).getTime()) / 3_600_000;
+      updated[item._id] = hoursElapsed <= 5;
     });
     setCancelStatus(updated);
   }, [data]);
 
-  useEffect(() => { dispatch(getResturent()); });
+  // ✅ Fixed: added [dispatch] dependency so this only runs once
+  useEffect(() => { dispatch(getResturent()); }, [dispatch]);
 
   function updateStatus(_id) {
     const item = data.find(x => x._id === _id);
@@ -291,7 +280,7 @@ export default function Order({ title, data = [] }) {
   }
 
   function updateOrder(_id) {
-    if (!window.confirm('Are you sure you want to cancel your Order?')) return;
+    if (!window.confirm('Are you sure you want to cancel your order?')) return;
     const item = data.find(x => x._id === _id);
     if (item) dispatch(updateCheckout({ ...item, orderStatus: 'Cancelled' }));
   }
@@ -316,8 +305,10 @@ export default function Order({ title, data = [] }) {
           {/* Page heading */}
           <div className="mb-4">
             <h1 style={S.pageTitle}>
-              <i className={`fa ${isOrder ? 'fa-shopping-bag' : 'fa-calendar-check'} me-3`}
-                 style={{ color: 'var(--primary)', fontSize: '1.6rem' }}></i>
+              <i
+                className={`fa ${isOrder ? 'fa-shopping-bag' : 'fa-calendar-check'} me-3`}
+                style={{ color: 'var(--primary)', fontSize: '1.6rem' }}
+              ></i>
               {isOrder ? 'Your Orders' : 'Your Bookings'}
             </h1>
             <p style={S.pageSub}>
@@ -408,21 +399,26 @@ export default function Order({ title, data = [] }) {
 
               {/* ── Card Footer ── */}
               <div style={S.cardFooter}>
+
                 {/* Payment info */}
                 <div style={S.paymentInfo}>
                   <div>
                     <div style={S.payLabel}>Payment Mode</div>
                     <div style={S.payValue}>
-                      <i className={`fa ${item?.paymentMode === 'COD' ? 'fa-money-bill-wave' : 'fa-university'} me-1`}
-                         style={{ color: 'var(--primary)', fontSize: '0.8rem' }}></i>
+                      <i
+                        className={`fa ${item?.paymentMode === 'COD' ? 'fa-money-bill-wave' : 'fa-university'} me-1`}
+                        style={{ color: 'var(--primary)', fontSize: '0.8rem' }}
+                      ></i>
                       {item?.paymentMode || 'N/A'}
                     </div>
                   </div>
                   <div>
                     <div style={S.payLabel}>Payment Status</div>
                     <div style={S.payStatus(item?.paymentStatus === 'Pending')}>
-                      <i className={`fa ${item?.paymentStatus === 'Pending' ? 'fa-hourglass-half' : 'fa-check-circle'}`}
-                         style={{ fontSize: '0.8rem' }}></i>
+                      <i
+                        className={`fa ${item?.paymentStatus === 'Pending' ? 'fa-hourglass-half' : 'fa-check-circle'}`}
+                        style={{ fontSize: '0.8rem' }}
+                      ></i>
                       {item?.paymentStatus || 'N/A'}
                     </div>
                   </div>
@@ -440,6 +436,7 @@ export default function Order({ title, data = [] }) {
                     {/* ── ORDER cancel logic ── */}
                     {isOrder ? (
                       <>
+                        {/* ✅ Fixed: use item?.orderStatus, check array correctly */}
                         {canCancelOrder(item) && (
                           <button
                             onClick={() => updateOrder(item?._id)}
@@ -459,7 +456,6 @@ export default function Order({ title, data = [] }) {
                       /* ── BOOKING cancel logic ── */
                       (() => {
                         const { eligible, windowOpen } = canCancelBooking(item, cancelStatus);
-
                         return (
                           <>
                             {item.bookingStatus === 'false' ? (
@@ -489,9 +485,7 @@ export default function Order({ title, data = [] }) {
                                 <i className="fa fa-clock" style={{ fontSize: '0.78rem', color: 'var(--primary)', opacity: 0.6 }}></i>
                                 Window Expired
                               </span>
-                            ) : null
-                            /* COD+Done or Net Banking+Pending → render nothing (no cancel option) */
-                            }
+                            ) : null}
 
                             <Link
                               to={`/booking-detail/${item?._id}`}

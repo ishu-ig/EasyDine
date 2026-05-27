@@ -57,35 +57,37 @@ export default function BookingDetailPage() {
     if (invoiceLoading) return;
     setInvoiceLoading(true);
     try {
-      const response = await fetch(
-        `${process.env.REACT_APP_BACKEND_SERVER}/api/bookinginvoice/generate`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            authorization: localStorage.getItem('token'),
-          },
-          body: JSON.stringify({ bookingId: _id }),
-        }
-      );
-
-      const data = await response.json();
-
-      if (response.ok && data.result === 'Done' && data.invoice?.invoiceNumber) {
-        window.open(
-          `${process.env.REACT_APP_BACKEND_SERVER}/invoices/${data.invoice.invoiceNumber}.pdf`,
-          '_blank'
+        const response = await fetch(
+            `${process.env.REACT_APP_BACKEND_SERVER}/api/bookinginvoice/generate`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    authorization: localStorage.getItem('token'),
+                },
+                body: JSON.stringify({ bookingId: _id }),
+            }
         );
-      } else {
-        alert(data.reason || 'Invoice generation failed. Please try again.');
-      }
+
+        if (!response.ok) {
+            const data = await response.json();
+            alert(data.reason || 'Invoice generation failed.');
+            return;
+        }
+
+        // ✅ Same blob approach as OrderDetailPage
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        window.open(url, '_blank');
+        setTimeout(() => window.URL.revokeObjectURL(url), 10000);
+
     } catch (err) {
-      console.error('Invoice error:', err);
-      alert('Could not connect to server. Please try again.');
+        console.error('Invoice error:', err);
+        alert('Could not connect to server. Please try again.');
     } finally {
-      setInvoiceLoading(false);
+        setInvoiceLoading(false);
     }
-  };
+};
 
   // ── Loading screen ─────────────────────────────────────────────────────────
   if (!booking) return (
