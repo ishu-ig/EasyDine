@@ -1,8 +1,9 @@
-const PDFDocument = require("pdfkit")
-const path = require("path")
-const fs = require("fs")
-const Checkout = require("../models/Checkout")
-const Invoice = require("../models/Invoice")
+const fs             = require("fs")
+const path           = require("path")
+const { randomUUID } = require("crypto")
+const PDFDocument    = require("pdfkit")
+const Checkout       = require("../models/Checkout")
+const Invoice        = require("../models/Invoice")
 
 // ── Design Tokens ─────────────────────────────────────────────────────────────
 const C = {
@@ -242,8 +243,8 @@ function buildProductInvoicePDF(order, invoiceNumber) {
             y += 16
         }
 
-        totRow("Subtotal",          currency(subtotal))
-        totRow("Delivery Charges",  currency(shipping))
+        totRow("Subtotal",         currency(subtotal))
+        totRow("Delivery Charges", currency(shipping))
         hRule(doc, y, totX, M + tableW, C.border, 0.5)
         y += 8
 
@@ -296,8 +297,7 @@ async function createProductInvoice(req, res) {
         if (existing) return res.json({ result: "Done", invoice: { invoiceNumber: existing.invoiceNumber } })
 
         const datePart      = new Date().toISOString().slice(0, 10).replace(/-/g, "")
-        const rand          = Math.floor(1000 + Math.random() * 9000)
-        const invoiceNumber = `PINV-${datePart}-${rand}`
+        const invoiceNumber = `PINV-${datePart}-${randomUUID().slice(0, 8).toUpperCase()}`
 
         await buildProductInvoicePDF(order, invoiceNumber)
 
