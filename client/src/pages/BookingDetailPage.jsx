@@ -40,7 +40,7 @@ const stepIcons    = ['fa-calendar-check', 'fa-check-circle', 'fa-chair', 'fa-st
 export default function BookingDetailPage() {
   const { _id } = useParams();
   const BookingStateData = useSelector(state => state.BookingStateData);
-  const [booking, setBooking]             = useState(null);
+  const [booking, setBooking]               = useState(null);
   const [invoiceLoading, setInvoiceLoading] = useState(false);
   const dispatch = useDispatch();
 
@@ -57,37 +57,35 @@ export default function BookingDetailPage() {
     if (invoiceLoading) return;
     setInvoiceLoading(true);
     try {
-        const response = await fetch(
-            `${process.env.REACT_APP_BACKEND_SERVER}/api/bookinginvoice/generate`,
-            {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    authorization: localStorage.getItem('token'),
-                },
-                body: JSON.stringify({ bookingId: _id }),
-            }
-        );
-
-        if (!response.ok) {
-            const data = await response.json();
-            alert(data.reason || 'Invoice generation failed.');
-            return;
+      const response = await fetch(
+        `${process.env.REACT_APP_BACKEND_SERVER}/api/bookinginvoice/generate`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            authorization: localStorage.getItem('token'),
+          },
+          body: JSON.stringify({ bookingId: _id }),
         }
+      );
 
-        // ✅ Same blob approach as OrderDetailPage
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        window.open(url, '_blank');
-        setTimeout(() => window.URL.revokeObjectURL(url), 10000);
+      if (!response.ok) {
+        const data = await response.json();
+        alert(data.reason || 'Invoice generation failed.');
+        return;
+      }
 
+      const blob = await response.blob();
+      const url  = window.URL.createObjectURL(blob);
+      window.open(url, '_blank');
+      setTimeout(() => window.URL.revokeObjectURL(url), 10000);
     } catch (err) {
-        console.error('Invoice error:', err);
-        alert('Could not connect to server. Please try again.');
+      console.error('Invoice error:', err);
+      alert('Could not connect to server. Please try again.');
     } finally {
-        setInvoiceLoading(false);
+      setInvoiceLoading(false);
     }
-};
+  };
 
   // ── Loading screen ─────────────────────────────────────────────────────────
   if (!booking) return (
@@ -100,10 +98,14 @@ export default function BookingDetailPage() {
     </div>
   );
 
-  const isCompleted = booking.bookingStatus === 'Completed';
-  const isPaid      = booking.paymentStatus !== 'Pending';
-  const currentStep = STATUS_STEPS.indexOf(booking.bookingStatus);
-  const progressPct = Math.max(0, (currentStep / (STATUS_STEPS.length - 1)) * 100);
+  const isCompleted     = booking.bookingStatus === 'Completed';
+  const isPaid          = booking.paymentStatus === 'Done';
+  const isCancelled     = booking.bookingStatus === 'Cancelled';
+  const currentStep     = STATUS_STEPS.indexOf(booking.bookingStatus);
+  const progressPct     = Math.max(0, (currentStep / (STATUS_STEPS.length - 1)) * 100);
+
+  // Invoice is downloadable only when payment is done and booking isn't cancelled
+  const invoiceEnabled  = isPaid && !isCancelled;
 
   return (
     <div style={{ background: 'linear-gradient(135deg,#EAF3DE 0%,#F6FBF0 100%)', minHeight: '80vh', padding: '48px 16px' }}>
@@ -174,7 +176,7 @@ export default function BookingDetailPage() {
               <div>
                 <p style={{ margin: '0 0 2px', fontSize: '0.73rem', color: C.gray, fontWeight: 500 }}>Booking Status</p>
                 <span style={{ display: 'inline-block', padding: '3px 12px', borderRadius: 50, fontSize: '0.75rem', fontWeight: 700, background: isCompleted ? 'rgba(63,109,17,0.12)' : C.primaryLight, color: isCompleted ? '#27500A' : C.primary }}>
-                  {String(booking.bookingStatus) || 'N/A'}
+                  {booking.bookingStatus || 'N/A'}
                 </span>
               </div>
             </div>
@@ -229,27 +231,27 @@ export default function BookingDetailPage() {
           {/* Total + Invoice button row */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 12px 0', borderTop: '1px solid rgba(63,109,17,0.12)', marginTop: 8, flexWrap: 'wrap', gap: 12 }}>
 
-            {/* Invoice Button */}
+            {/* ── Invoice Button (single, unified) ── */}
             <button
-              onClick={generateInvoice}
-              disabled={invoiceLoading}
+              onClick={invoiceEnabled && !invoiceLoading ? generateInvoice : undefined}
+              disabled={!invoiceEnabled || invoiceLoading}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 9,
                 padding: '11px 22px',
-                background: invoiceLoading ? 'rgba(63,109,17,0.45)' : C.primary,
+                background: (!invoiceEnabled || invoiceLoading) ? 'rgba(63,109,17,0.45)' : C.primary,
                 color: '#fff',
                 border: 'none',
                 borderRadius: 50,
                 fontWeight: 700,
                 fontSize: '0.84rem',
                 fontFamily: "'DM Sans',sans-serif",
-                cursor: invoiceLoading ? 'not-allowed' : 'pointer',
+                cursor: (!invoiceEnabled || invoiceLoading) ? 'not-allowed' : 'pointer',
                 transition: 'all 0.25s',
-                boxShadow: invoiceLoading ? 'none' : '0 4px 14px rgba(63,109,17,0.30)',
+                boxShadow: (!invoiceEnabled || invoiceLoading) ? 'none' : '0 4px 14px rgba(63,109,17,0.30)',
               }}
-              onMouseEnter={e => { if (!invoiceLoading) e.currentTarget.style.transform = 'translateY(-2px)'; }}
+              onMouseEnter={e => { if (invoiceEnabled && !invoiceLoading) e.currentTarget.style.transform = 'translateY(-2px)'; }}
               onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; }}
             >
               {invoiceLoading ? (

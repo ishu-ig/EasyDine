@@ -34,7 +34,6 @@ function InfoRow({ icon, label, value }) {
   );
 }
 
-// ── NEW: Delivery Boy Card ──────────────────────────────────────────────────
 function DeliveryBoyCard({ deliveryBoy }) {
   if (!deliveryBoy) {
     return (
@@ -59,8 +58,6 @@ function DeliveryBoyCard({ deliveryBoy }) {
       <h6 style={{ fontWeight: 700, color: C.dark, marginBottom: 16, fontFamily: "'Playfair Display',serif", fontSize: '1rem' }}>
         Delivery Partner
       </h6>
-
-      {/* Avatar + name row */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16, padding: '14px 16px', background: C.primaryLight, borderRadius: 12 }}>
         <div style={{ width: 48, height: 48, borderRadius: '50%', background: C.primary, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: '#fff', fontWeight: 700, fontSize: '1.1rem', fontFamily: "'DM Sans',sans-serif" }}>
           {deliveryBoy.name ? deliveryBoy.name.charAt(0).toUpperCase() : '?'}
@@ -72,11 +69,10 @@ function DeliveryBoyCard({ deliveryBoy }) {
           </span>
         </div>
       </div>
-
-      <InfoRow icon="fa-phone"    label="Phone"         value={deliveryBoy.phone} />
-      <InfoRow icon="fa-envelope" label="Email"         value={deliveryBoy.email} />
-      <InfoRow icon="fa-id-badge" label="Partner ID"    value={deliveryBoy.employeeId || deliveryBoy._id} />
-      <InfoRow icon="fa-star"     label="Rating"        value={deliveryBoy.rating ? `${deliveryBoy.rating} / 5` : null} />
+      <InfoRow icon="fa-phone"      label="Phone"      value={deliveryBoy.phone} />
+      <InfoRow icon="fa-envelope"   label="Email"      value={deliveryBoy.email} />
+      <InfoRow icon="fa-id-badge"   label="Partner ID" value={deliveryBoy.employeeId || deliveryBoy._id} />
+      <InfoRow icon="fa-star"       label="Rating"     value={deliveryBoy.rating ? `${deliveryBoy.rating} / 5` : null} />
       <InfoRow icon="fa-motorcycle" label="Vehicle No." value={deliveryBoy.vehicleNumber} />
     </div>
   );
@@ -103,37 +99,35 @@ export default function OrderDetailPage() {
     if (invoiceLoading) return;
     setInvoiceLoading(true);
     try {
-        const response = await fetch(
-            `${process.env.REACT_APP_BACKEND_SERVER}/api/invoice/generate`,
-            {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    authorization: localStorage.getItem('token'),
-                },
-                body: JSON.stringify({ orderId: _id }),
-            }
-        );
-
-        if (!response.ok) {
-            const data = await response.json();
-            alert(data.reason || 'Invoice generation failed.');
-            return;
+      const response = await fetch(
+        `${process.env.REACT_APP_BACKEND_SERVER}/api/invoice/generate`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            authorization: localStorage.getItem('token'),
+          },
+          body: JSON.stringify({ orderId: _id }),
         }
+      );
 
-        // Convert response to blob and open as PDF
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        window.open(url, '_blank');
-        setTimeout(() => window.URL.revokeObjectURL(url), 10000);
+      if (!response.ok) {
+        const data = await response.json();
+        alert(data.reason || 'Invoice generation failed.');
+        return;
+      }
 
+      const blob = await response.blob();
+      const url  = window.URL.createObjectURL(blob);
+      window.open(url, '_blank');
+      setTimeout(() => window.URL.revokeObjectURL(url), 10000);
     } catch (err) {
-        console.error('Invoice error:', err);
-        alert('Could not connect to server. Please try again.');
+      console.error('Invoice error:', err);
+      alert('Could not connect to server. Please try again.');
     } finally {
-        setInvoiceLoading(false);
+      setInvoiceLoading(false);
     }
-};
+  };
 
   // ── Loading screen ─────────────────────────────────────────────────────────
   if (!order) return (
@@ -146,9 +140,12 @@ export default function OrderDetailPage() {
     </div>
   );
 
-  const isDelivered = order.orderStatus === 'Delivered';
-  const isPaid      = order.paymentStatus !== 'Pending';
-  const currentStep = statusSteps.indexOf(order.orderStatus);
+  const isDelivered    = order.orderStatus   === 'Delivered';
+  const isPaid         = order.paymentStatus === 'Done';
+  const currentStep    = statusSteps.indexOf(order.orderStatus);
+
+  // Button is active only when order is delivered AND payment is confirmed
+  const invoiceEnabled = isDelivered && isPaid;
 
   return (
     <div style={{ background: 'linear-gradient(135deg,#FDF6EE 0%,#FFF8F3 100%)', minHeight: '80vh', padding: '48px 16px' }}>
@@ -241,13 +238,13 @@ export default function OrderDetailPage() {
           <div style={{ ...C.card, marginBottom: 0 }}>
             <h6 style={{ fontWeight: 700, color: C.dark, marginBottom: 16, fontFamily: "'Playfair Display',serif", fontSize: '1rem' }}>Delivery Address</h6>
             {[
-              { icon: 'fa-user',           label: 'Name',     value: order.user?.name },
-              { icon: 'fa-envelope',       label: 'Email',    value: order.user?.email },
-              { icon: 'fa-phone',          label: 'Phone',    value: order.user?.phone },
-              { icon: 'fa-map-marker-alt', label: 'Street',   value: order.user?.address },
-              { icon: 'fa-city',           label: 'City',     value: order.user?.city },
-              { icon: 'fa-flag',           label: 'State',    value: order.user?.state },
-              { icon: 'fa-hashtag',        label: 'Pincode',  value: order.user?.pin },
+              { icon: 'fa-user',           label: 'Name',    value: order.user?.name },
+              { icon: 'fa-envelope',       label: 'Email',   value: order.user?.email },
+              { icon: 'fa-phone',          label: 'Phone',   value: order.user?.phone },
+              { icon: 'fa-map-marker-alt', label: 'Street',  value: order.user?.address },
+              { icon: 'fa-city',           label: 'City',    value: order.user?.city },
+              { icon: 'fa-flag',           label: 'State',   value: order.user?.state },
+              { icon: 'fa-hashtag',        label: 'Pincode', value: order.user?.pin },
             ].map(f => <InfoRow key={f.label} {...f} />)}
           </div>
         </div>
@@ -297,27 +294,27 @@ export default function OrderDetailPage() {
               {/* Total + Invoice button row */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 12px 0', borderTop: '1px solid rgba(200,64,10,0.12)', marginTop: 8, flexWrap: 'wrap', gap: 12 }}>
 
-                {/* Invoice Button */}
+                {/* ── Invoice Button ── */}
                 <button
-                  onClick={generateInvoice}
-                  disabled={invoiceLoading}
+                  onClick={invoiceEnabled && !invoiceLoading ? generateInvoice : undefined}
+                  disabled={!invoiceEnabled || invoiceLoading}
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: 9,
                     padding: '11px 22px',
-                    background: invoiceLoading ? 'rgba(200,64,10,0.45)' : C.primary,
+                    background: (!invoiceEnabled || invoiceLoading) ? 'rgba(200,64,10,0.40)' : C.primary,
                     color: '#fff',
                     border: 'none',
                     borderRadius: 50,
                     fontWeight: 700,
                     fontSize: '0.84rem',
                     fontFamily: "'DM Sans',sans-serif",
-                    cursor: invoiceLoading ? 'not-allowed' : 'pointer',
+                    cursor: (!invoiceEnabled || invoiceLoading) ? 'not-allowed' : 'pointer',
                     transition: 'all 0.25s',
-                    boxShadow: invoiceLoading ? 'none' : '0 4px 14px rgba(200,64,10,0.30)',
+                    boxShadow: (!invoiceEnabled || invoiceLoading) ? 'none' : '0 4px 14px rgba(200,64,10,0.30)',
                   }}
-                  onMouseEnter={e => { if (!invoiceLoading) e.currentTarget.style.transform = 'translateY(-2px)'; }}
+                  onMouseEnter={e => { if (invoiceEnabled && !invoiceLoading) e.currentTarget.style.transform = 'translateY(-2px)'; }}
                   onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; }}
                 >
                   {invoiceLoading ? (
