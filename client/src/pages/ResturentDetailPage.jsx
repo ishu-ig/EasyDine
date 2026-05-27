@@ -744,7 +744,7 @@ export default function ResturentDetailPage() {
             <div className="col-lg-5">
               <div style={S.heroPanel}>
                 <img
-                  src={`${SERVER}/${data.pic}`}
+                  src={data.pic}
                   alt={data.name}
                   style={S.heroImg}
                   className="rdp-hero-img"
