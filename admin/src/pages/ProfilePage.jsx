@@ -300,7 +300,7 @@ export default function ProfilePage({ title }) {
                     {!isCheckout && (
                         <div className="pp-avatar-card">
                             <img
-                                src={data.pic ? `${process.env.REACT_APP_BACKEND_SERVER}/${data.pic}` : "/img/noimage.jpg"}
+                                src={ data.pic || "/img/noimage.jpg"}
                                 alt="Profile"
                                 className="pp-avatar-img"
                             />
