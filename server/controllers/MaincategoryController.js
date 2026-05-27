@@ -1,5 +1,5 @@
 const Maincategory = require("../models/Maincategory")
-const fs = require("fs")
+const { deleteFromCloudinary }        = require("../cloudinaryMethods");
 
 async function createRecord(req, res) {
     try {
@@ -14,9 +14,7 @@ async function createRecord(req, res) {
         })
     } catch (error) {
 
-        try {
-            fs.unlinkSync(req.file.path)
-        } catch (error) { }
+        if (req.file) await deleteFromCloudinary(req.file.path);
 
         let errorMessage = {}
         error.keyValue ? errorMessage.name = "Maincategory Already Exist" : null
@@ -85,9 +83,7 @@ async function updateRecord(req, res) {
             data.name = req.body.name ?? data.name
             data.active = req.body.active ?? data.active
             if (await data.save() && req.file) {
-                try {
-                    fs.unlinkSync(data.pic)
-                } catch (error) { }
+                await deleteFromCloudinary(data.pic);
                 data.pic = req.file.path
                 await data.save()
             }
@@ -103,9 +99,7 @@ async function updateRecord(req, res) {
             })
         }
     } catch (error) {
-        try {
-            fs.unlinkSync(req.file.path)
-        } catch (error) { }
+        if (req.file) await deleteFromCloudinary(req.file.path);
         let errorMessage = {}
         error.keyValue ? errorMessage.name = "Maincategory already Exist" : null
 
@@ -128,9 +122,7 @@ async function deleteRecord(req, res) {
     try {
         let data = await Maincategory.findOne({ _id: req.params._id })
         if (data) {
-            try {
-                fs.unlinkSync(data.pic)
-            } catch (error) { }
+            if (data.pic) await deleteFromCloudinary(data.pic);
             await data.deleteOne()
             res.send({
                 result: "Done",

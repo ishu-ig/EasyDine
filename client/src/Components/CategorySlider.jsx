@@ -99,7 +99,7 @@ export default function CategorySlider({ title, data }) {
                     }}
                   >
                     <img
-                      src={`${process.env.REACT_APP_BACKEND_SERVER}/${item.pic}`}
+                      src={item.pic}
                       alt={item.name}
                       style={{
                         width: '100%', height: '100%',

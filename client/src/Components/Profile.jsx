@@ -88,7 +88,7 @@ export default function Profile({ title }) {
                             }}>
                                 <div style={{ position: 'relative', display: 'inline-block', marginBottom: '16px' }}>
                                     <img
-                                        src={data?.pic ? `${process.env.REACT_APP_BACKEND_SERVER}/${data.pic}` : "/img/noimage.jpg"}
+                                        src={data.pic || "/img/noimage.jpg"}
                                         alt="Profile"
                                         style={{
                                             width: '140px', height: '140px',

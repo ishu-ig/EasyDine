@@ -83,7 +83,7 @@ export default function ResturentSlider({ title, data }) {
                 {/* Image */}
                 <div style={{ position: 'relative', overflow: 'hidden', height: 220 }}>
                   <img
-                    src={`${process.env.REACT_APP_BACKEND_SERVER}/${item.pic}`}
+                    src={item.pic}
                     alt={item.name}
                     style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s ease' }}
                     onMouseEnter={e => e.target.style.transform = 'scale(1.06)'}

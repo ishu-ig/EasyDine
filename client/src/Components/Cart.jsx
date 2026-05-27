@@ -136,7 +136,7 @@ export default function Cart({ title, data }) {
                   }}
                 >
                   <img
-                    src={`${process.env.REACT_APP_BACKEND_SERVER}/${item.product.pic}`}
+                    src={item.product.pic}
                     style={{ width: 64, height: 50, objectFit: 'cover', borderRadius: 10, flexShrink: 0, border: `1.5px solid ${C.primaryBorder}` }}
                     alt="Product"
                   />
@@ -251,8 +251,8 @@ export default function Cart({ title, data }) {
                 {cart.map((item, idx) => (
                   <div key={item._id} style={{ borderBottom: idx < cart.length - 1 ? '1px solid rgba(200,64,10,0.07)' : 'none' }}>
                     <div className="d-none d-lg-grid" style={{ display: 'grid', gridTemplateColumns: COL_NORMAL, columnGap: 16, padding: '14px 22px', alignItems: 'center' }}>
-                      <Link to={`${process.env.REACT_APP_BACKEND_SERVER}/${item.product.pic}`} target="_blank">
-                        <img src={`${process.env.REACT_APP_BACKEND_SERVER}/${item.product.pic}`} style={{ width: 68, height: 52, objectFit: 'cover', borderRadius: 10, border: `1.5px solid ${C.primaryBorder}`, display: 'block' }} alt="Product" />
+                      <Link to={item.product.pic} target="_blank">
+                        <img src={item.product.pic} style={{ width: 68, height: 52, objectFit: 'cover', borderRadius: 10, border: `1.5px solid ${C.primaryBorder}`, display: 'block' }} alt="Product" />
                       </Link>
                       <span style={{ fontWeight: 600, fontSize: '0.88rem', color: C.dark }}>{item.product?.name}</span>
                       <span style={{ fontSize: '0.82rem', color: C.gray }}>{item.product.maincategory?.name}</span>

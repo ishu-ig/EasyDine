@@ -253,7 +253,7 @@ export default function Navbar() {
                       <img
                         src={
                           data?.pic && localStorage.getItem("login")
-                            ? `${process.env.REACT_APP_BACKEND_SERVER}/${data.pic}`
+                            ? data.pic
                             : "/img/noimage.jpg"
                         }
                         alt="User"

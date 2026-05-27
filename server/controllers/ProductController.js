@@ -1,5 +1,5 @@
 const Product = require("../models/Product")
-const fs = require("fs")
+const { deleteFromCloudinary } = require("../cloudinaryMethods");
 
 // ── Shared helper: extract Mongoose validation messages ───────────────────────
 function extractValidationErrors(error) {
@@ -35,9 +35,7 @@ async function createRecord(req, res) {
 
     } catch (error) {
         // Delete uploaded file if save failed
-        if (req.file) {
-            try { fs.unlinkSync(req.file.path) } catch (_) {}
-        }
+        if (req.file) await deleteFromCloudinary(req.file.path);
 
         const errorMessage = extractValidationErrors(error)
 
@@ -125,7 +123,7 @@ async function updateRecord(req, res) {
         // NOTE: rating is intentionally excluded — it is managed by addReview
 
         if (req.file) {
-            try { fs.unlinkSync(currentPic) } catch (_) {}
+            await deleteFromCloudinary(updatePayload.pic);
             updatePayload.pic = req.file.path
         }
 
@@ -141,9 +139,7 @@ async function updateRecord(req, res) {
         res.send({ result: "Done", data: finalData })
 
     } catch (error) {
-        if (req.file) {
-            try { fs.unlinkSync(req.file.path) } catch (_) {}
-        }
+        if (req.file) await deleteFromCloudinary(req.file.path);
 
         const errorMessage = extractValidationErrors(error)
 
@@ -165,9 +161,7 @@ async function deleteRecord(req, res) {
         }
 
         // Remove image from disk
-        if (data.pic) {
-            try { fs.unlinkSync(data.pic) } catch (_) {}
-        }
+        if (data.pic) await deleteFromCloudinary(data.pic);
 
         await data.deleteOne()
         res.send({ result: "Done", data })

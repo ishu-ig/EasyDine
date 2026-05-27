@@ -2,8 +2,8 @@ const User = require("../models/User")
 const mailer = require("../mailer/index")
 const passwordValidator = require("password-validator")
 const bcrypt = require("bcrypt")
-const fs = require("fs")
 const jwt = require("jsonwebtoken")
+const { deleteFromCloudinary } = require("../cloudinaryMethods");
 
 const schema = new passwordValidator()
 
@@ -67,9 +67,7 @@ async function createRecord(req, res) {
             });
         } catch (error) {
 
-            try {
-                fs.unlinkSync(req.file.path)
-            } catch (error) { }
+            if (req.file) await deleteFromCloudinary(req.file.path);
 
             let errorMessage = {};
 
@@ -153,7 +151,7 @@ async function updateRecord(req, res) {
                 data.role = req.body.role
             if (await data.save() && req.file) {
                 try {
-                    fs.unlinkSync(data.pic)
+                    await deleteFromCloudinary(data.pic);
                 } catch (error) { }
                 data.pic = req.file.path
                 await data.save()
@@ -170,9 +168,7 @@ async function updateRecord(req, res) {
             })
         }
     } catch (error) {
-        try {
-            fs.unlinkSync(req.file.path)
-        } catch (error) { }
+        if (req.file) await deleteFromCloudinary(req.file.path);
 
         let errorMessage = {}
         error.keyValue ? errorMessage.username = "User with this Username Already Exist" : null
@@ -197,9 +193,7 @@ async function deleteRecord(req, res) {
     try {
         let data = await User.findOne({ _id: req.params._id })
         if (data) {
-            try {
-                fs.unlinkSync(data.pic)
-            } catch (error) { }
+            if (data.pic) await deleteFromCloudinary(data.pic);
             await data.deleteOne()
             res.send({
                 result: "Done",

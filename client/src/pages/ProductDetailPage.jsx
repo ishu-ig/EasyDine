@@ -208,13 +208,23 @@ export default function ProductDetailPage() {
   }
 
   /* ── Derived image data ────────────────────────────────── */
-  const mainPicUrl = data?.pic ? `${SERVER}/${data.pic}` : '/img/noimage.jpg'
-  const images = (() => {
-    if (Array.isArray(data?.images) && data.images.length > 0)
-      return data.images.map(i => `${SERVER}/${i}`)
-    if (data?.pic) return [mainPicUrl]
-    return []
-  })()
+  const mainPicUrl = data?.pic
+  ? (data.pic.startsWith("http") ? data.pic : `${SERVER}/${data.pic}`)
+  : "/img/noimage.jpg";
+
+const images = (() => {
+  if (Array.isArray(data?.images) && data.images.length > 0) {
+    return data.images.map(i =>
+      i.startsWith("http") ? i : `${SERVER}/${i}`
+    );
+  }
+
+  if (data?.pic) {
+    return [mainPicUrl];
+  }
+
+  return ["/img/noimage.jpg"];
+})();
   const activeImage = images[activeThumb] || mainPicUrl
   const hasMultiple = images.length > 1
 

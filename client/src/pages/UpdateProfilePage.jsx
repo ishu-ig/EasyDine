@@ -87,7 +87,7 @@ export default function UpdateProfilePage() {
                 if (response.result === "Done") {
                     setData(response.data)
                     if (response.data.pic) {
-                        setPreviewUrl(`${process.env.REACT_APP_BACKEND_SERVER}/${response.data.pic}`)
+                        setPreviewUrl(response.data.pic)
                     }
                 }
             } catch (error) {

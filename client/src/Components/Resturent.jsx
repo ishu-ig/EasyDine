@@ -598,7 +598,7 @@ export default function Resturent({ title }) {
                                 {/* Image */}
                                 <div className="rp-img-wrap">
                                     <img
-                                        src={`${process.env.REACT_APP_BACKEND_SERVER}/${item.pic}`}
+                                        src={item.pic}
                                         className="rp-img"
                                         alt={item.name}
                                     />

@@ -153,7 +153,7 @@ export default function Testimonials() {
                   {/* Author */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
                     <img
-                      src={`${process.env.REACT_APP_BACKEND_SERVER}/${item.pic}`}
+                      src={item.pic}
                       alt={item.name}
                       style={{
                         width: 52, height: 52,

@@ -1,5 +1,5 @@
 const Subcategory = require("../models/Subcategory")
-const fs = require("fs")
+const { deleteFromCloudinary } = require("../cloudinaryMethods");
 
 async function createRecord(req, res) {
     try {
@@ -16,9 +16,7 @@ async function createRecord(req, res) {
         })
     } catch (error) {
 
-        try {
-            fs.unlinkSync(req.file.path)
-        } catch (error) { }
+        if (req.file) await deleteFromCloudinary(req.file.path);
 
         let errorMessage = {}
         error.keyValue ? errorMessage.name = "Subcategory Already Exist" : null
@@ -90,13 +88,11 @@ async function updateRecord(req, res) {
             data.name = req.body.name ?? data.name
             data.maincategory = req.body.maincategory ?? data.maincategory
             data.active = req.body.active ?? data.active
-            if (await data.save() && req.file) {
-                try {
-                    fs.unlinkSync(data.pic)
-                } catch (error) { }
-                data.pic = req.file.path
-                await data.save()
+            if (req.file) {
+                await deleteFromCloudinary(data.pic); // delete old BEFORE overwriting
+                data.pic = req.file.path;
             }
+            await data.save();
             let finalData = await Subcategory.findOne({ _id: data._id })
                 .populate("maincategory", ["name"])
             res.send({
@@ -111,9 +107,7 @@ async function updateRecord(req, res) {
             })
         }
     } catch (error) {
-        try {
-            fs.unlinkSync(req.file.path)
-        } catch (error) { }
+        if (req.file) await deleteFromCloudinary(req.file.path);
         let errorMessage = {}
         error.keyValue ? errorMessage.name = "Subcategory already Exist" : null
         console.log(error)
@@ -136,9 +130,7 @@ async function deleteRecord(req, res) {
     try {
         let data = await Subcategory.findOne({ _id: req.params._id })
         if (data) {
-            try {
-                fs.unlinkSync(data.pic)
-            } catch (error) { }
+            if (data.pic) await deleteFromCloudinary(data.pic);
             await data.deleteOne()
             res.send({
                 result: "Done",
