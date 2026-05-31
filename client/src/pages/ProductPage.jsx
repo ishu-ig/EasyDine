@@ -263,6 +263,16 @@ export default function ProductPage({ show }) {
     </div>
   );
 
+  /* ── Shared chip style ── */
+  const chipStyle = {
+    display: 'inline-flex', alignItems: 'center', gap: 6,
+    padding: '5px 12px', borderRadius: 50,
+    background: 'rgba(200,64,10,0.09)',
+    border: '1px solid rgba(200,64,10,0.2)',
+    color: C.primary, fontSize: '0.78rem',
+    fontWeight: 600, textDecoration: 'none',
+  };
+
   return (
     <>
       <style>{`
@@ -273,6 +283,8 @@ export default function ProductPage({ show }) {
         .pp-search:focus { border-color: var(--primary) !important; box-shadow: 0 0 0 3px rgba(200,64,10,0.1); outline:none; }
         .pp-sort:focus   { border-color: var(--primary) !important; outline:none; }
         .pp-mobile-toggle:hover { background: var(--accent) !important; }
+        .pp-chip-btn { cursor: pointer; background: rgba(200,64,10,0.09); border: 1px solid rgba(200,64,10,0.2); }
+        .pp-chip-btn:hover { background: rgba(200,64,10,0.16) !important; }
 
         /* ── Mobile / Tablet drawer ── */
         .pp-drawer-backdrop {
@@ -456,51 +468,53 @@ export default function ProductPage({ show }) {
                 </div>
               </div>
 
-              {/* Active filter chips row */}
-              {(mc !== "All" || sc !== "All" || rn !== "All") && (
+              {/* ── Active filter chips row ── */}
+              {(mc !== "All" || sc !== "All" || rn !== "All" || search) && (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
+
+                  {/* Category chip */}
                   {mc !== "All" && (
-                    <Link to={`/product?mc=All&sc=${sc}&rn=${rn}`} style={{
-                      display: 'inline-flex', alignItems: 'center', gap: 6,
-                      padding: '5px 12px', borderRadius: 50,
-                      background: 'rgba(200,64,10,0.09)',
-                      border: '1px solid rgba(200,64,10,0.2)',
-                      color: C.primary, fontSize: '0.78rem',
-                      fontWeight: 600, textDecoration: 'none',
-                    }}>
+                    <Link to={`/product?mc=All&sc=${sc}&rn=${rn}`} style={chipStyle}>
                       <i className="fa fa-layer-group" style={{ fontSize: '0.7rem' }}></i>
                       {mc}
                       <i className="fa fa-times" style={{ fontSize: '0.65rem', opacity: 0.7 }}></i>
                     </Link>
                   )}
+
+                  {/* Subcategory chip */}
                   {sc !== "All" && (
-                    <Link to={`/product?mc=${mc}&sc=All&rn=${rn}`} style={{
-                      display: 'inline-flex', alignItems: 'center', gap: 6,
-                      padding: '5px 12px', borderRadius: 50,
-                      background: 'rgba(200,64,10,0.09)',
-                      border: '1px solid rgba(200,64,10,0.2)',
-                      color: C.primary, fontSize: '0.78rem',
-                      fontWeight: 600, textDecoration: 'none',
-                    }}>
+                    <Link to={`/product?mc=${mc}&sc=All&rn=${rn}`} style={chipStyle}>
                       <i className="fa fa-list" style={{ fontSize: '0.7rem' }}></i>
                       {sc}
                       <i className="fa fa-times" style={{ fontSize: '0.65rem', opacity: 0.7 }}></i>
                     </Link>
                   )}
+
+                  {/* Restaurant chip */}
                   {rn !== "All" && (
-                    <Link to={`/product?mc=${mc}&sc=${sc}&rn=All`} style={{
-                      display: 'inline-flex', alignItems: 'center', gap: 6,
-                      padding: '5px 12px', borderRadius: 50,
-                      background: 'rgba(200,64,10,0.09)',
-                      border: '1px solid rgba(200,64,10,0.2)',
-                      color: C.primary, fontSize: '0.78rem',
-                      fontWeight: 600, textDecoration: 'none',
-                    }}>
+                    <Link to={`/product?mc=${mc}&sc=${sc}&rn=All`} style={chipStyle}>
                       <i className="fa fa-store" style={{ fontSize: '0.7rem' }}></i>
                       {rn}
                       <i className="fa fa-times" style={{ fontSize: '0.65rem', opacity: 0.7 }}></i>
                     </Link>
                   )}
+
+                  {/* ── Search keyword chip ── */}
+                  {search && (
+                    <span
+                      className="pp-chip-btn"
+                      onClick={() => { setSearch(""); applyFilters(mc, sc, rn, Number(min), Number(max), ""); }}
+                      style={{
+                        ...chipStyle,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <i className="fa fa-search" style={{ fontSize: '0.7rem' }}></i>
+                      "{search}"
+                      <i className="fa fa-times" style={{ fontSize: '0.65rem', opacity: 0.7 }}></i>
+                    </span>
+                  )}
+
                 </div>
               )}
 

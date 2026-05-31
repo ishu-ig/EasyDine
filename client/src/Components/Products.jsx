@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
-export default function Products({ data, show }) {
+export default function Product({ data, show }) {
   const [displayedData, setDisplayedData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [itemsToShow, setItemsToShow] = useState(16);
@@ -50,7 +50,7 @@ export default function Products({ data, show }) {
         <div className="row g-4">
           {displayedData.length > 0 ? (
             displayedData.map((item, index) => (
-              <div key={index} className="col-xl-3 col-lg-4 col-md-6">
+              <div key={index} className="col-6 col-md-4 col-xl-3">
                 <div
                   style={{
                     background: 'white',
@@ -203,7 +203,7 @@ export default function Products({ data, show }) {
           {/* Skeleton Loader */}
           {loading &&
             Array.from({ length: 8 }).map((_, index) => (
-              <div key={index} className="col-xl-3 col-lg-4 col-md-6">
+              <div key={index} className="col-6 col-md-4 col-xl-3">
                 <div style={{ background: 'white', borderRadius: 20, overflow: 'hidden', boxShadow: '0 2px 12px rgba(28,16,9,0.07)' }}>
                   <div style={{ height: 240 }} className="skeleton w-100"></div>
                   <div style={{ padding: '16px 18px 20px' }}>
