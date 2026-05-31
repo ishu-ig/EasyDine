@@ -339,16 +339,15 @@ export default function Navbar() {
 
       {/* ── Main Navbar ── */}
       <div
-        className="container-fluid sticky-top px-0"
-        style={{
-          background: "rgba(253,246,238,0.97)",
-          backdropFilter: "blur(12px)",
-          borderBottom: "1px solid rgba(200,64,10,0.1)",
-          boxShadow: scrolled ? "0 4px 20px rgba(28,16,9,0.1)" : "none",
-          transition: "box-shadow 0.35s ease",
-          zIndex: 1030,
-        }}
-      >
+  className="container-fluid sticky-top px-0"
+  style={{
+    background: "rgba(253,246,238,0.97)",
+    backdropFilter: "blur(12px)",
+    borderBottom: "1px solid rgba(200,64,10,0.1)",
+    boxShadow: scrolled ? "0 4px 20px rgba(28,16,9,0.1)" : "none",
+    transition: "box-shadow 0.35s ease",
+  }}
+>
         <nav className="navbar navbar-expand-lg py-2 px-4 px-lg-5">
           {/* Brand */}
           <Link to="/" className="navbar-brand me-lg-4">
