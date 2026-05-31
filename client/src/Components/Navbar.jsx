@@ -273,7 +273,7 @@ export default function Navbar() {
           transition: background 0.2s;
         }
           .sticky-top {
-  position: sticky;
+  position: sticky !important;
   top: 0;
   z-index: 9999;
 }
@@ -339,7 +339,7 @@ export default function Navbar() {
 
       {/* ── Main Navbar ── */}
       <div
-  className="container-fluid sticky-top px-0"
+  className="container-fluid sticky-top px-0 fixed"
   style={{
     background: "rgba(253,246,238,0.97)",
     backdropFilter: "blur(12px)",
