@@ -18,7 +18,7 @@ export default function Navbar() {
               "content-type": "application/json",
               authorization: localStorage.getItem("token"),
             },
-          }
+          },
         );
         response = await response.json();
         setData(response.data);
@@ -37,7 +37,9 @@ export default function Navbar() {
   // Lock body scroll when drawer is open
   useEffect(() => {
     document.body.style.overflow = drawerOpen ? "hidden" : "";
-    return () => { document.body.style.overflow = ""; };
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, [drawerOpen]);
 
   function logout() {
@@ -270,6 +272,11 @@ export default function Navbar() {
           border-radius: 2px;
           transition: background 0.2s;
         }
+          .sticky-top {
+  position: sticky;
+  top: 0;
+  z-index: 9999;
+}
         .sk-toggler:hover span { background: var(--primary, #c84010); }
       `}</style>
 
@@ -279,16 +286,37 @@ export default function Navbar() {
         style={{ background: "var(--accent)" }}
       >
         <div className="col-lg-6 text-start">
-          <Link to="mailto:info@example.com" className="text-white-50 text-decoration-none me-1" style={{ fontSize: "0.82rem" }}>
-            <i className="fa fa-envelope me-2" style={{ color: "var(--secondary)" }}></i>
+          <Link
+            to="mailto:info@example.com"
+            className="text-white-50 text-decoration-none me-1"
+            style={{ fontSize: "0.82rem" }}
+          >
+            <i
+              className="fa fa-envelope me-2"
+              style={{ color: "var(--secondary)" }}
+            ></i>
             info@example.com
           </Link>
-          <Link to="tel:+91-856935475" className="text-white-50 text-decoration-none ms-4" style={{ fontSize: "0.82rem" }}>
-            <i className="fa fa-phone me-2" style={{ color: "var(--secondary)" }}></i>
+          <Link
+            to="tel:+91-856935475"
+            className="text-white-50 text-decoration-none ms-4"
+            style={{ fontSize: "0.82rem" }}
+          >
+            <i
+              className="fa fa-phone me-2"
+              style={{ color: "var(--secondary)" }}
+            ></i>
             +91-856935475
           </Link>
-          <Link to="https://wa.me/856935475" className="text-white-50 text-decoration-none ms-4" style={{ fontSize: "0.82rem" }}>
-            <i className="bi bi-whatsapp me-2" style={{ color: "var(--secondary)" }}></i>
+          <Link
+            to="https://wa.me/856935475"
+            className="text-white-50 text-decoration-none ms-4"
+            style={{ fontSize: "0.82rem" }}
+          >
+            <i
+              className="bi bi-whatsapp me-2"
+              style={{ color: "var(--secondary)" }}
+            ></i>
             +91-856935475
           </Link>
         </div>
@@ -324,7 +352,14 @@ export default function Navbar() {
         <nav className="navbar navbar-expand-lg py-2 px-4 px-lg-5">
           {/* Brand */}
           <Link to="/" className="navbar-brand me-lg-4">
-            <h1 className="fw-bold m-0" style={{ fontFamily: "Playfair Display, serif", fontSize: "1.65rem", letterSpacing: "-0.01em" }}>
+            <h1
+              className="fw-bold m-0"
+              style={{
+                fontFamily: "Playfair Display, serif",
+                fontSize: "1.65rem",
+                letterSpacing: "-0.01em",
+              }}
+            >
               <span style={{ color: "var(--primary)" }}>Eazy</span>
               <span style={{ color: "var(--accent)" }}>Dine</span>
             </h1>
@@ -338,16 +373,28 @@ export default function Navbar() {
                 background: "var(--primary)",
                 border: "none",
                 borderRadius: "50%",
-                width: 38, height: 38,
-                display: "flex", alignItems: "center", justifyContent: "center",
+                width: 38,
+                height: 38,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
                 color: "white",
                 textDecoration: "none",
               }}
             >
-              <i className="fa fa-shopping-cart" style={{ fontSize: "0.82rem" }}></i>
+              <i
+                className="fa fa-shopping-cart"
+                style={{ fontSize: "0.82rem" }}
+              ></i>
             </Link>
-            <button className="sk-toggler" onClick={() => setDrawerOpen(true)} aria-label="Open menu">
-              <span /><span /><span />
+            <button
+              className="sk-toggler"
+              onClick={() => setDrawerOpen(true)}
+              aria-label="Open menu"
+            >
+              <span />
+              <span />
+              <span />
             </button>
           </div>
 
@@ -359,7 +406,11 @@ export default function Navbar() {
                   key={to}
                   to={to}
                   className="nav-item nav-link"
-                  style={{ fontFamily: "DM Sans, sans-serif", fontWeight: 500, fontSize: "0.9rem" }}
+                  style={{
+                    fontFamily: "DM Sans, sans-serif",
+                    fontWeight: 500,
+                    fontSize: "0.9rem",
+                  }}
                 >
                   {label}
                 </NavLink>
@@ -374,8 +425,11 @@ export default function Navbar() {
                   background: "white",
                   border: "1px solid rgba(200,64,10,0.12)",
                   borderRadius: "50%",
-                  width: 36, height: 36,
-                  display: "flex", alignItems: "center", justifyContent: "center",
+                  width: 36,
+                  height: 36,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
                   cursor: "pointer",
                   transition: "all 0.25s",
                   color: "var(--dark)",
@@ -390,17 +444,27 @@ export default function Navbar() {
                   background: "var(--primary)",
                   border: "none",
                   borderRadius: "50%",
-                  width: 36, height: 36,
-                  display: "flex", alignItems: "center", justifyContent: "center",
+                  width: 36,
+                  height: 36,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
                   color: "white",
                   textDecoration: "none",
                   transition: "all 0.25s",
                   flexShrink: 0,
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = "var(--accent)")}
-                onMouseLeave={(e) => (e.currentTarget.style.background = "var(--primary)")}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.background = "var(--accent)")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.background = "var(--primary)")
+                }
               >
-                <i className="fa fa-shopping-cart" style={{ fontSize: "0.8rem" }}></i>
+                <i
+                  className="fa fa-shopping-cart"
+                  style={{ fontSize: "0.8rem" }}
+                ></i>
               </Link>
 
               {/* Desktop Profile Dropdown */}
@@ -412,49 +476,101 @@ export default function Navbar() {
                     background: "white",
                     border: "1px solid rgba(200,64,10,0.12)",
                     borderRadius: "50%",
-                    width: 36, height: 36,
-                    display: "flex", alignItems: "center", justifyContent: "center",
+                    width: 36,
+                    height: 36,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                     cursor: "pointer",
                     transition: "all 0.25s",
                   }}
                 >
-                  <i className="fa fa-user" style={{ fontSize: "0.8rem", color: "var(--dark)" }}></i>
+                  <i
+                    className="fa fa-user"
+                    style={{ fontSize: "0.8rem", color: "var(--dark)" }}
+                  ></i>
                 </span>
                 <div
                   className="dropdown-menu shadow-lg border-0 p-2"
-                  style={{ borderRadius: "var(--radius)", minWidth: 220, left: "auto", right: "0" }}
+                  style={{
+                    borderRadius: "var(--radius)",
+                    minWidth: 220,
+                    left: "auto",
+                    right: "0",
+                  }}
                 >
                   <Link to="/profile" className="text-decoration-none">
-                    <div className="d-flex align-items-center gap-3 px-3 py-2 mb-2" style={{ borderBottom: "1px solid rgba(200,64,10,0.1)" }}>
+                    <div
+                      className="d-flex align-items-center gap-3 px-3 py-2 mb-2"
+                      style={{ borderBottom: "1px solid rgba(200,64,10,0.1)" }}
+                    >
                       <img
-                        src={data?.pic && localStorage.getItem("login") ? data.pic : "/img/noimage.jpg"}
+                        src={
+                          data?.pic && localStorage.getItem("login")
+                            ? data.pic
+                            : "/img/noimage.jpg"
+                        }
                         alt="User"
                         className="rounded-circle"
-                        style={{ width: 42, height: 42, objectFit: "cover", border: "2px solid rgba(200,64,10,0.2)" }}
+                        style={{
+                          width: 42,
+                          height: 42,
+                          objectFit: "cover",
+                          border: "2px solid rgba(200,64,10,0.2)",
+                        }}
                       />
                       <div>
-                        <div style={{ fontFamily: "Playfair Display, serif", fontWeight: 700, fontSize: "0.9rem", color: "var(--dark)" }}>
+                        <div
+                          style={{
+                            fontFamily: "Playfair Display, serif",
+                            fontWeight: 700,
+                            fontSize: "0.9rem",
+                            color: "var(--dark)",
+                          }}
+                        >
                           {localStorage.getItem("name") || "Guest"}
                         </div>
-                        <div style={{ fontSize: "0.75rem", color: "var(--gray)" }}>View profile</div>
+                        <div
+                          style={{ fontSize: "0.75rem", color: "var(--gray)" }}
+                        >
+                          View profile
+                        </div>
                       </div>
                     </div>
                   </Link>
 
                   {!localStorage.getItem("login") && (
                     <NavLink to="/login" className="dropdown-item rounded-2">
-                      <i className="fa fa-sign-in-alt me-2" style={{ color: "var(--primary)" }}></i>Login
+                      <i
+                        className="fa fa-sign-in-alt me-2"
+                        style={{ color: "var(--primary)" }}
+                      ></i>
+                      Login
                     </NavLink>
                   )}
                   {accountLinks.map(({ to, icon, label }) => (
-                    <NavLink key={to} to={to} className="dropdown-item rounded-2">
-                      <i className={`fa fa-${icon} me-2`} style={{ color: "var(--primary)" }}></i>{label}
+                    <NavLink
+                      key={to}
+                      to={to}
+                      className="dropdown-item rounded-2"
+                    >
+                      <i
+                        className={`fa fa-${icon} me-2`}
+                        style={{ color: "var(--primary)" }}
+                      ></i>
+                      {label}
                     </NavLink>
                   ))}
                   {localStorage.getItem("login") && (
                     <>
-                      <hr className="my-2" style={{ borderColor: "rgba(200,64,10,0.1)" }} />
-                      <button onClick={logout} className="dropdown-item rounded-2 text-danger w-100 text-start border-0 bg-transparent">
+                      <hr
+                        className="my-2"
+                        style={{ borderColor: "rgba(200,64,10,0.1)" }}
+                      />
+                      <button
+                        onClick={logout}
+                        className="dropdown-item rounded-2 text-danger w-100 text-start border-0 bg-transparent"
+                      >
                         <i className="fa fa-sign-out-alt me-2"></i>Logout
                       </button>
                     </>
@@ -474,14 +590,21 @@ export default function Navbar() {
 
       {/* ── Mobile Drawer ── */}
       <div className={`sk-drawer ${drawerOpen ? "open" : ""}`}>
-
         {/* Drawer Header */}
         <div className="sk-drawer-head">
-          <Link to="/" className="sk-drawer-brand" onClick={() => setDrawerOpen(false)}>
+          <Link
+            to="/"
+            className="sk-drawer-brand"
+            onClick={() => setDrawerOpen(false)}
+          >
             <span style={{ color: "var(--primary)" }}>Eazy</span>
             <span style={{ color: "var(--accent)" }}>Dine</span>
           </Link>
-          <button className="sk-drawer-close" onClick={() => setDrawerOpen(false)} aria-label="Close menu">
+          <button
+            className="sk-drawer-close"
+            onClick={() => setDrawerOpen(false)}
+            aria-label="Close menu"
+          >
             &times;
           </button>
         </div>
@@ -489,11 +612,17 @@ export default function Navbar() {
         {/* User card */}
         <div className="sk-drawer-user">
           <img
-            src={data?.pic && localStorage.getItem("login") ? data.pic : "/img/noimage.jpg"}
+            src={
+              data?.pic && localStorage.getItem("login")
+                ? data.pic
+                : "/img/noimage.jpg"
+            }
             alt="User"
           />
           <div>
-            <div className="sk-drawer-user-name">{localStorage.getItem("name") || "Guest User"}</div>
+            <div className="sk-drawer-user-name">
+              {localStorage.getItem("name") || "Guest User"}
+            </div>
             <div className="sk-drawer-user-sub">
               {localStorage.getItem("login") ? "Logged in" : "Not logged in"}
             </div>
@@ -537,7 +666,11 @@ export default function Navbar() {
               <i className="fa fa-sign-out-alt" /> Logout
             </button>
           ) : (
-            <Link to="/login" className="sk-drawer-login" onClick={() => setDrawerOpen(false)}>
+            <Link
+              to="/login"
+              className="sk-drawer-login"
+              onClick={() => setDrawerOpen(false)}
+            >
               <i className="fa fa-sign-in-alt" /> Login to your account
             </Link>
           )}

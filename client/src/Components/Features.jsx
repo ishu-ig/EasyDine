@@ -1,5 +1,9 @@
 import React from 'react'
 import { Link } from 'react-router-dom';
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Autoplay, Pagination } from "swiper/modules";
+import 'swiper/css';
+import 'swiper/css/pagination';
 
 const features = [
     {
@@ -81,10 +85,21 @@ export default function Features() {
                         </p>
                     </div>
 
-                    {/* Feature Cards Grid */}
-                    <div className="row g-4">
+                    {/* Feature Cards Swiper */}
+                    <Swiper
+                        modules={[Autoplay, Pagination]}
+                        autoplay={{ delay: 3000, disableOnInteraction: false }}
+                        pagination={{ clickable: true }}
+                        loop={true}
+                        breakpoints={{
+                            0:    { slidesPerView: 1, spaceBetween: 16 },
+                            768:  { slidesPerView: 2, spaceBetween: 20 },
+                            1024: { slidesPerView: 3, spaceBetween: 24 },
+                        }}
+                        style={{ paddingBottom: 44 }}
+                    >
                         {features.map(({ icon, title, desc }, idx) => (
-                            <div key={title} className={`col-lg-4 col-md-6 wow fadeInUp`} data-wow-delay={`${0.1 + (idx % 3) * 0.2}s`}>
+                            <SwiperSlide key={title}>
                                 <div
                                     className="feature-card-custom"
                                     style={{
@@ -156,7 +171,7 @@ export default function Features() {
 
                                     {/* CTA Link */}
                                     <Link
-                                        to="/feature-detail" 
+                                        to="/feature-detail"
                                         state={{ title: title }}
                                         className="feat-link"
                                         style={{
@@ -173,9 +188,10 @@ export default function Features() {
                                         <i className="fa fa-arrow-right" style={{ fontSize: '10px' }}></i>
                                     </Link>
                                 </div>
-                            </div>
+                            </SwiperSlide>
                         ))}
-                    </div>
+                    </Swiper>
+
                 </div>
             </div>
         </>

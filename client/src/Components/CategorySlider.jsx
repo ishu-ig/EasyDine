@@ -58,20 +58,18 @@ export default function CategorySlider({ title, data }) {
         </div>
 
         <Swiper
-          modules={[Autoplay, Pagination]}
-          slidesPerView={2}
-          spaceBetween={20}
-          autoplay={{ delay: 3000, disableOnInteraction: false }}
-          pagination={{ clickable: true }}
-          breakpoints={{
-            480: { slidesPerView: 2, spaceBetween: 16 },
-            768: { slidesPerView: 3, spaceBetween: 20 },
-            1024: { slidesPerView: 4, spaceBetween: 24 },
-          }}
-          loop={true}
-          className="mySwiper"
-          style={{ paddingBottom: 40 }}
-        >
+  modules={[Autoplay, Pagination]}
+  autoplay={{ delay: 3000, disableOnInteraction: false }}
+  pagination={{ clickable: true }}
+  breakpoints={{
+    0:    { slidesPerView: 2, spaceBetween: 12 },
+    768:  { slidesPerView: 3, spaceBetween: 20 },
+    1024: { slidesPerView: 4, spaceBetween: 24 },
+  }}
+  loop={true}
+  className="mySwiper"
+  style={{ paddingBottom: 40 }}
+>
           {data?.map((item) => (
             <SwiperSlide key={item._id}>
               <div style={{ textAlign: 'center', padding: '0 8px' }}>
