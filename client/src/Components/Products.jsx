@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
-export default function Product({ data, show }) {
+export default function Products({ data, show }) {
   const [displayedData, setDisplayedData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [itemsToShow, setItemsToShow] = useState(16);
