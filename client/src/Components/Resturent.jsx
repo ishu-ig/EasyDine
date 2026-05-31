@@ -173,6 +173,12 @@ const styles = `
     max-width: 1200px; margin: 0 auto; padding: 0 24px;
     display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px;
   }
+  @media (max-width: 1023px) {
+    .rp-grid { grid-template-columns: repeat(2, 1fr); gap: 20px; }
+  }
+  @media (max-width: 767px) {
+    .rp-grid { grid-template-columns: repeat(1, 1fr); gap: 16px; padding: 0 16px; }
+  }
 
   /* ===== CARD ===== */
   .rp-card {
@@ -317,7 +323,6 @@ const styles = `
     justify-content: space-between;
     gap: 16px;
   }
-  .bm-header-left {}
   .bm-label {
     font-size: 0.68rem;
     font-weight: 700;
@@ -579,7 +584,6 @@ const styles = `
     .rp-controls { width: 100%; }
     .rp-search-form { flex: 1; }
     .rp-search-input { width: 100%; min-width: 0; }
-    .rp-grid { grid-template-columns: repeat(3, 1fr); gap: 16px; padding: 0 16px; }
     .rp-body { padding: 14px 14px 12px; gap: 8px; }
     .rp-name { font-size: 0.95rem; }
     .rp-address { font-size: 0.75rem; }
@@ -597,11 +601,8 @@ const styles = `
     .rp-wrapper { padding: 48px 0 64px; }
     .rp-controls { flex-direction: column; }
     .rp-sort-select { width: 100%; }
-    .rp-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 0 12px; }
     .rp-body { padding: 12px 10px 10px; }
     .rp-name { font-size: 0.88rem; }
-    .rp-address { display: none; }
-    .rp-seats { display: none; }
     .rp-actions { gap: 6px; }
     .rp-btn { padding: 8px 6px; font-size: 0.72rem; border-radius: 8px; }
     .bm-slots { grid-template-columns: repeat(3, 1fr); }
@@ -611,15 +612,11 @@ const styles = `
     .bm-footer { padding: 0 18px 20px; }
     .bm-sep { margin: 16px 18px 0; }
   }
-  @media (max-width: 380px) {
-    .rp-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; padding: 0 8px; }
-    .rp-name { font-size: 0.8rem; }
-  }
 `;
 
 const TIME_SLOTS = ["12:00 PM", "12:30 PM", "1:00 PM", "1:30 PM", "7:00 PM", "7:30 PM", "8:00 PM", "8:30 PM"];
 const PAYMENT_MODES = [
-  { id: "upi", icon: "📱", label: "UPI" },
+  { id: "upi",  icon: "📱", label: "UPI"  },
   { id: "card", icon: "💳", label: "Card" },
   { id: "cash", icon: "💵", label: "Cash" },
 ];
@@ -629,9 +626,9 @@ function getTodayStr() {
 }
 
 function BookingModal({ item, onClose }) {
-  const [date, setDate] = useState(getTodayStr());
+  const [date, setDate]       = useState(getTodayStr());
   const [timeSlot, setTimeSlot] = useState(TIME_SLOTS[4]);
-  const [seats, setSeats] = useState(1);
+  const [seats, setSeats]     = useState(1);
   const [payment, setPayment] = useState("upi");
   const [confirmed, setConfirmed] = useState(false);
 
@@ -760,9 +757,7 @@ function BookingModal({ item, onClose }) {
                 type="button"
                 aria-label="Increase"
               >+</button>
-              <span className="bm-seat-note">
-                up to {maxQuick} here
-              </span>
+              <span className="bm-seat-note">up to {maxQuick} here</span>
             </div>
           </div>
 
@@ -850,8 +845,8 @@ function BookingModal({ item, onClose }) {
 }
 
 export default function Resturent({ title }) {
-  const [data, setData] = useState([]);
-  const [search, setSearch] = useState("");
+  const [data, setData]           = useState([]);
+  const [search, setSearch]       = useState("");
   const [bookingItem, setBookingItem] = useState(null);
   const ResturentStateData = useSelector(state => state.ResturentStateData);
   const dispatch = useDispatch();
