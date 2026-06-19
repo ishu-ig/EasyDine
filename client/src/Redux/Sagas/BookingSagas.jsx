@@ -10,17 +10,14 @@ function* createSaga(action) {
 }
 
 function* getSaga(action) {
-    let response = yield getRecord("booking",action.payload)
+    let response = yield getRecord("booking")
     yield put({ type: GET_BOOKING_RED, payload: response.data })
 }
 
 function* updateSaga(action) {
-    try {
-        let response = yield updateRecord("booking", action.payload);
-        yield put({ type: UPDATE_BOOKING_RED, payload: response.data }); // Use the response directly
-    } catch (error) {
-        console.error('Error in updateSaga:', error);
-    }
+    yield updateRecord("booking", action.payload)
+    // yield updateMultiPartRecord("booking", action.payload)
+    yield put({ type: UPDATE_BOOKING_RED, payload: action.payload })
 }
 function* deleteSaga(action) {
     yield deleteRecord("booking", action.payload)

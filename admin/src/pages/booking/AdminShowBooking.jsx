@@ -1,579 +1,205 @@
 import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import { Link, useParams } from "react-router-dom";
-import {
-  getBooking,
-  updateBooking,
-} from "../../Redux/ActionCreators/BookingActionCreators";
-
-const styles = `
-  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap');
-
-  .abs-wrap {
-    font-family: 'DM Sans', sans-serif;
-    min-height: 100vh;
-    background: #f5f4f0;
-    padding: 2rem 1.5rem;
-    color: #1a1a18;
-  }
-
-  .abs-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 2rem;
-  }
-
-  .abs-back-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 13px;
-    font-weight: 500;
-    color: #5c5c58;
-    text-decoration: none;
-    background: #fff;
-    border: 1px solid #e0dfd9;
-    border-radius: 8px;
-    padding: 8px 14px;
-    transition: all 0.15s ease;
-  }
-
-  .abs-back-btn:hover {
-    background: #f0efe9;
-    color: #1a1a18;
-    border-color: #c8c7c0;
-  }
-
-  .abs-back-btn svg {
-    width: 14px;
-    height: 14px;
-  }
-
-  .abs-page-title {
-    font-size: 22px;
-    font-weight: 600;
-    letter-spacing: -0.3px;
-    color: #1a1a18;
-    margin: 0;
-  }
-
-  .abs-grid {
-    display: grid;
-    grid-template-columns: 1fr 340px;
-    gap: 1.25rem;
-    max-width: 1100px;
-    margin: 0 auto;
-  }
-
-  @media (max-width: 820px) {
-    .abs-grid { grid-template-columns: 1fr; }
-  }
-
-  .abs-card {
-    background: #fff;
-    border: 1px solid #e8e7e1;
-    border-radius: 14px;
-    overflow: hidden;
-  }
-
-  .abs-card-header {
-    padding: 16px 20px;
-    border-bottom: 1px solid #f0efe9;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .abs-card-icon {
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-
-  .abs-card-icon.blue { background: #e8f0fb; }
-  .abs-card-icon.amber { background: #fef3e2; }
-
-  .abs-card-title {
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 0.4px;
-    text-transform: uppercase;
-    color: #888880;
-    margin: 0;
-  }
-
-  .abs-rows {
-    padding: 8px 0;
-  }
-
-  .abs-row {
-    display: flex;
-    align-items: flex-start;
-    padding: 11px 20px;
-    border-bottom: 1px solid #f5f4f0;
-    gap: 1rem;
-  }
-
-  .abs-row:last-child {
-    border-bottom: none;
-  }
-
-  .abs-row-label {
-    font-size: 13px;
-    color: #888880;
-    font-weight: 500;
-    width: 140px;
-    flex-shrink: 0;
-    padding-top: 1px;
-  }
-
-  .abs-row-value {
-    font-size: 14px;
-    color: #1a1a18;
-    font-weight: 400;
-    flex: 1;
-  }
-
-  .abs-id {
-    font-family: 'DM Mono', monospace;
-    font-size: 12px;
-    color: #5c5c58;
-    background: #f5f4f0;
-    padding: 3px 8px;
-    border-radius: 5px;
-    letter-spacing: 0.3px;
-  }
-
-  .abs-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 12px;
-    font-weight: 600;
-    padding: 4px 10px;
-    border-radius: 20px;
-    letter-spacing: 0.2px;
-  }
-
-  .abs-badge::before {
-    content: '';
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    display: inline-block;
-  }
-
-  .abs-badge.success {
-    background: #e6f5ed;
-    color: #1a7a41;
-  }
-  .abs-badge.success::before { background: #2da05a; }
-
-  .abs-badge.danger {
-    background: #fdecea;
-    color: #b02a1e;
-  }
-  .abs-badge.danger::before { background: #e34234; }
-
-  .abs-badge.warning {
-    background: #fff4e1;
-    color: #9a6200;
-  }
-  .abs-badge.warning::before { background: #e89500; }
-
-  .abs-price {
-    font-family: 'DM Mono', monospace;
-    font-size: 14px;
-    font-weight: 500;
-    color: #1a1a18;
-  }
-
-  .abs-price.large {
-    font-size: 20px;
-    font-weight: 600;
-    color: #1a1a18;
-  }
-
-  .abs-select {
-    margin-top: 8px;
-    width: 100%;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 13px;
-    padding: 8px 10px;
-    border: 1px solid #e0dfd9;
-    border-radius: 8px;
-    background: #fafaf8;
-    color: #1a1a18;
-    cursor: pointer;
-    outline: none;
-    transition: border-color 0.15s;
-  }
-
-  .abs-select:focus { border-color: #888880; }
-
-  .abs-update-btn {
-    display: block;
-    width: 100%;
-    padding: 12px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
-    font-weight: 600;
-    color: #fff;
-    background: #1a1a18;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: background 0.15s, transform 0.1s;
-    letter-spacing: 0.2px;
-    margin-top: 4px;
-  }
-
-  .abs-update-btn:hover { background: #333330; }
-  .abs-update-btn:active { transform: scale(0.98); }
-
-  .abs-summary-card {
-    background: #1a1a18;
-    border-radius: 14px;
-    padding: 20px;
-    color: #fff;
-    margin-bottom: 1.25rem;
-  }
-
-  .abs-summary-label {
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.8px;
-    text-transform: uppercase;
-    color: #888880;
-    margin-bottom: 4px;
-  }
-
-  .abs-summary-name {
-    font-size: 18px;
-    font-weight: 600;
-    color: #fff;
-    margin: 0 0 4px;
-  }
-
-  .abs-summary-sub {
-    font-size: 13px;
-    color: #888880;
-  }
-
-  .abs-divider {
-    border: none;
-    border-top: 1px solid #2e2e2c;
-    margin: 16px 0;
-  }
-
-  .abs-stat-row {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 12px;
-    align-items: baseline;
-  }
-
-  .abs-stat-label {
-    font-size: 12px;
-    color: #888880;
-  }
-
-  .abs-stat-val {
-    font-size: 13px;
-    font-weight: 500;
-    color: #e8e7e1;
-  }
-
-  .abs-total-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    padding-top: 14px;
-    border-top: 1px solid #2e2e2c;
-  }
-
-  .abs-total-label {
-    font-size: 12px;
-    color: #888880;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    font-weight: 600;
-  }
-
-  .abs-total-val {
-    font-family: 'DM Mono', monospace;
-    font-size: 22px;
-    font-weight: 600;
-    color: #fff;
-  }
-
-  .abs-avatar {
-    width: 42px;
-    height: 42px;
-    border-radius: 50%;
-    background: #e8f0fb;
-    color: #185fa5;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 15px;
-    font-weight: 600;
-    flex-shrink: 0;
-  }
-
-  .abs-contact-row {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 13px;
-    color: #5c5c58;
-    padding: 3px 0;
-  }
-
-  .abs-contact-row svg {
-    width: 13px;
-    height: 13px;
-    opacity: 0.5;
-    flex-shrink: 0;
-  }
-`;
+import { useDispatch, useSelector } from "react-redux";
+import { getBooking, updateBooking } from "../../Redux/ActionCreators/BookingActionCreators";
 
 export default function AdminBookingShow() {
-  let { _id } = useParams();
-  let BookingStateData = useSelector((state) => state.BookingStateData);
-  let dispatch = useDispatch();
+  const { _id } = useParams();
+  const BookingStateData = useSelector((state) => state.BookingStateData);
+  const dispatch = useDispatch();
 
-  let [data, setData] = useState({});
-  let [paymentStatus, setPaymentStatus] = useState("");
-  let [flag, setFlag] = useState(false);
+  const [data, setData] = useState(null);
+  const [paymentStatus, setPaymentStatus] = useState("");
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => { dispatch(getBooking()); }, [dispatch]);
 
   useEffect(() => {
-    (async () => {
-      dispatch(getBooking());
-      if (BookingStateData.length) {
-        let item = BookingStateData.find((x) => x._id === _id);
-        if (item) {
-          setData({ ...item });
-          setPaymentStatus(item.paymentStatus);
-        } else {
-          alert("Invalid Checkout Id");
-        }
+    const list = Array.isArray(BookingStateData) ? BookingStateData : BookingStateData?.data || [];
+    if (list.length) {
+      const item = list.find((x) => x._id === _id);
+      if (item) {
+        setData({ ...item });
+        setPaymentStatus(item.paymentStatus || "Pending");
+      } else {
+        alert("Invalid Booking ID");
       }
-    })();
-  }, [BookingStateData.length]);
+    }
+  }, [_id, BookingStateData]);
 
   function updateRecord() {
-    if (window.confirm("Are you sure you want to update the status?")) {
-      data.paymentStatus = paymentStatus;
-      dispatch(updateBooking({ ...data }));
-      setFlag(!flag);
+    if (window.confirm("Are you sure you want to update the payment status?")) {
+      const updatedData = { ...data, paymentStatus };
+      dispatch(updateBooking(updatedData));
+      setData(updatedData);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
     }
   }
 
-  const canUpdate =
-    data.bookingStatus === "true" && data.paymentStatus !== "Done";
+  if (!data) {
+    return (
+      <main className="dashboard-content">
+        <div className="container-fluid px-3 px-lg-4 py-4 d-flex align-items-center justify-content-center" style={{ minHeight: "60vh" }}>
+          <div className="text-center">
+            <div className="spinner-border text-primary mb-3"></div>
+            <p className="text-muted">Loading booking…</p>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
-  const initials = data.user?.username
-    ? data.user.username
-        .split(" ")
-        .map((n) => n[0])
-        .join("")
-        .toUpperCase()
-        .slice(0, 2)
-    : "?";
+  const isConfirmed = data.bookingStatus === "true";
+  const isCancelled = !isConfirmed;
+  const isCompleted = isConfirmed && data.paymentStatus === "Done";
+  const canUpdate    = isConfirmed && data.paymentStatus !== "Done";
 
   return (
-    <>
-      <style>{styles}</style>
-      <div className="abs-wrap">
-        {/* Header */}
-        <div className="abs-header" style={{ maxWidth: 1100, margin: "0 auto 2rem" }}>
-          <h1 className="abs-page-title">Booking Details</h1>
-          <Link to="/booking" className="abs-back-btn">
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M10 3L5 8l5 5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            All Bookings
-          </Link>
+    <main className="dashboard-content">
+      <style>{`
+        .detail-row { display: flex; align-items: flex-start; gap: 10px; font-size: 0.85rem; color: #495057; }
+        .summary-row { display: flex; justify-content: space-between; padding: 0.4rem 0; font-size: 0.85rem; color: #495057; }
+        .summary-row.total { font-size: 1rem; font-weight: 700; color: #212529; }
+        .summary-row.total span:last-child { color: #0d6efd; }
+      `}</style>
+
+      <div className="container-fluid px-3 px-lg-4 py-4">
+
+        <div className="page-heading">
+          <div className="page-heading-copy">
+            <span className="page-icon">
+              <i className="bi bi-calendar-check" aria-hidden="true"></i>
+            </span>
+            <div>
+              <p className="eyebrow mb-1">Management</p>
+              <h1 className="h3 mb-1">Booking Details</h1>
+              <p className="text-muted mb-0">ID: {data._id}</p>
+            </div>
+          </div>
+          <div className="heading-actions d-flex flex-wrap gap-2 align-items-center">
+            <span className={`badge ${isConfirmed ? "text-bg-success" : "text-bg-danger"}`}>
+              {isConfirmed ? "Confirmed" : "Cancelled"}
+            </span>
+            <span className={`badge ${data.paymentStatus === "Done" ? "text-bg-success" : "text-bg-warning"}`}>
+              {data.paymentStatus}
+            </span>
+            <Link className="btn btn-outline-secondary btn-sm" to="/booking">
+              <i className="bi bi-arrow-left" aria-hidden="true"></i> Back to Bookings
+            </Link>
+          </div>
         </div>
 
-        <div className="abs-grid">
-          {/* Left Column */}
-          <div>
-            {/* Booking Info */}
-            <div className="abs-card" style={{ marginBottom: "1.25rem" }}>
-              <div className="abs-card-header">
-                <div className="abs-card-icon blue">
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <rect x="2" y="3" width="12" height="11" rx="2" stroke="#185fa5" strokeWidth="1.5"/>
-                    <path d="M5 2v2M11 2v2M2 7h12" stroke="#185fa5" strokeWidth="1.5" strokeLinecap="round"/>
-                  </svg>
-                </div>
-                <p className="abs-card-title">Reservation</p>
-              </div>
-              <div className="abs-rows">
-                <div className="abs-row">
-                  <span className="abs-row-label">Booking ID</span>
-                  <span className="abs-row-value">
-                    <span className="abs-id">{data._id || "—"}</span>
-                  </span>
-                </div>
-                <div className="abs-row">
-                  <span className="abs-row-label">Restaurant</span>
-                  <span className="abs-row-value" style={{ fontWeight: 500 }}>
-                    {data.resturent?.name || "—"}
-                  </span>
-                </div>
-                <div className="abs-row">
-                  <span className="abs-row-label">Date</span>
-                  <span className="abs-row-value">
-                    {data.date ? new Date(data.date).toLocaleDateString("en-IN", {
-                      weekday: "short", day: "numeric", month: "long", year: "numeric"
-                    }) : "—"}
-                  </span>
-                </div>
-                <div className="abs-row">
-                  <span className="abs-row-label">Time Slot</span>
-                  <span className="abs-row-value">{data.time || "—"}</span>
-                </div>
-                <div className="abs-row">
-                  <span className="abs-row-label">Seats</span>
-                  <span className="abs-row-value">{data.seats || "—"}</span>
-                </div>
-                <div className="abs-row">
-                  <span className="abs-row-label">Created</span>
-                  <span className="abs-row-value" style={{ color: "#5c5c58", fontSize: 13 }}>
-                    {data.createdAt ? new Date(data.createdAt).toLocaleString("en-IN") : "—"}
-                  </span>
+        {saved && (
+          <div className="alert alert-success" role="alert">
+            <i className="bi bi-check-circle me-2"></i>Payment status updated successfully
+          </div>
+        )}
+
+        <section className="row g-3">
+
+          {isCancelled && (
+            <div className="col-12">
+              <div className="alert alert-danger d-flex align-items-center gap-3 mb-0" role="alert">
+                <i className="bi bi-x-circle fs-3"></i>
+                <div>
+                  <div className="fw-bold">Booking Cancelled</div>
+                  <div className="small">This reservation has been cancelled.</div>
                 </div>
               </div>
             </div>
+          )}
 
-            {/* Payment Info */}
-            <div className="abs-card">
-              <div className="abs-card-header">
-                <div className="abs-card-icon amber">
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <circle cx="8" cy="8" r="6" stroke="#9a6200" strokeWidth="1.5"/>
-                    <path d="M8 5v1.5M8 9.5V11M6.5 7.5C6.5 6.7 7.2 6 8 6s1.5.7 1.5 1.5S8.8 9 8 9s-1.5.7-1.5 1.5" stroke="#9a6200" strokeWidth="1.5" strokeLinecap="round"/>
-                  </svg>
-                </div>
-                <p className="abs-card-title">Payment</p>
+          <div className="col-12 col-lg-6">
+            <div className="panel h-100">
+              <h2 className="h5 mb-3 section-title">
+                <i className="bi bi-person" aria-hidden="true"></i>
+                <span>Customer</span>
+              </h2>
+              <div className="d-flex flex-column gap-2">
+                {[
+                  { icon: "bi-person",    val: data.user?.username },
+                  { icon: "bi-envelope",  val: data.user?.email },
+                  { icon: "bi-telephone", val: data.user?.phone },
+                  { icon: "bi-geo-alt",   val: [data.user?.city, data.user?.state, data.user?.pin].filter(Boolean).join(", ") },
+                ].filter((r) => r.val).map(({ icon, val }) => (
+                  <div key={icon} className="detail-row">
+                    <i className={`bi ${icon} text-primary`}></i>
+                    <span>{val}</span>
+                  </div>
+                ))}
               </div>
-              <div className="abs-rows">
-                <div className="abs-row">
-                  <span className="abs-row-label">Booking Status</span>
-                  <span className="abs-row-value">
-                    {data.bookingStatus === "true" ? (
-                      <span className="abs-badge success">Confirmed</span>
-                    ) : (
-                      <span className="abs-badge danger">Cancelled</span>
-                    )}
-                  </span>
-                </div>
-                <div className="abs-row">
-                  <span className="abs-row-label">Payment Mode</span>
-                  <span className="abs-row-value">{data.paymentMode || "—"}</span>
-                </div>
-                <div className="abs-row">
-                  <span className="abs-row-label">Payment Status</span>
-                  <span className="abs-row-value">
-                    {data.paymentStatus === "Done" ? (
-                      <span className="abs-badge success">Done</span>
-                    ) : (
-                      <span className="abs-badge warning">Pending</span>
-                    )}
-                    {canUpdate && (
-                      <select
-                        className="abs-select"
-                        value={paymentStatus}
-                        onChange={(e) => setPaymentStatus(e.target.value)}
-                      >
-                        <option>Pending</option>
-                        <option>Done</option>
-                      </select>
-                    )}
-                  </span>
-                </div>
+            </div>
+          </div>
+
+          <div className="col-12 col-lg-6">
+            <div className="panel h-100">
+              <h2 className="h5 mb-3 section-title">
+                <i className="bi bi-file-earmark-text" aria-hidden="true"></i>
+                <span>Booking Summary</span>
+              </h2>
+              <div className="summary-row"><span>Restaurant</span><span>{data.resturent?.name ?? "—"}</span></div>
+              <div className="summary-row">
+                <span>Date</span>
+                <span>{data.date ? new Date(data.date).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—"}</span>
               </div>
-              {canUpdate && (
-                <div style={{ padding: "12px 20px 18px" }}>
-                  <button className="abs-update-btn" onClick={updateRecord}>
-                    Update Payment Status
+              <div className="summary-row"><span>Time Slot</span><span>{data.time ?? "—"}</span></div>
+              <div className="summary-row"><span>Seats</span><span>{data.seats ?? "—"}</span></div>
+              <hr className="my-2" />
+              <div className="summary-row total"><span>Total</span><span>₹{data.finalReservationPrice ?? data.total ?? 0}</span></div>
+              <div className="summary-row"><span>Payment Mode</span><span>{data.paymentMode ?? "—"}</span></div>
+              <div className="summary-row">
+                <span>Payment Status</span>
+                <span className={`badge ${data.paymentStatus === "Done" ? "text-bg-success" : "text-bg-warning"}`}>
+                  {data.paymentStatus}
+                </span>
+              </div>
+              <div className="summary-row">
+                <span>Booked On</span>
+                <span>{data.createdAt ? new Date(data.createdAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—"}</span>
+              </div>
+            </div>
+          </div>
+
+          {canUpdate && (
+            <div className="col-12">
+              <div className="panel">
+                <h2 className="h5 mb-3 section-title">
+                  <i className="bi bi-pencil-square" aria-hidden="true"></i>
+                  <span>Update Payment Status</span>
+                </h2>
+                <div className="row g-3">
+                  <div className="col-md-4">
+                    <label className="form-label">Payment Status</label>
+                    <select className="form-select" value={paymentStatus} onChange={(e) => setPaymentStatus(e.target.value)}>
+                      <option value="Pending">Pending</option>
+                      <option value="Done">Done</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="d-flex justify-content-end mt-4">
+                  <button className="btn btn-primary" onClick={updateRecord}>
+                    <i className="bi bi-check-circle" aria-hidden="true"></i> Save Changes
                   </button>
                 </div>
-              )}
-            </div>
-          </div>
-
-          {/* Right Column */}
-          <div>
-            {/* Price Summary Dark Card */}
-            <div className="abs-summary-card">
-              <p className="abs-summary-label">Restaurant</p>
-              <p className="abs-summary-name">{data.resturent?.name || "—"}</p>
-              <p className="abs-summary-sub">
-                {data.date ? new Date(data.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : ""}{data.time ? ` · ${data.time}` : ""}
-              </p>
-              <hr className="abs-divider" />
-              <div className="abs-stat-row">
-                <span className="abs-stat-label">Seats</span>
-                <span className="abs-stat-val">{data.seats || "—"}</span>
-              </div>
-              <div className="abs-stat-row">
-                <span className="abs-stat-label">Subtotal</span>
-                <span className="abs-stat-val">₹{data.resturent?.finalPrice ?? "—"}</span>
-              </div>
-              <div className="abs-total-row">
-                <span className="abs-total-label">Total</span>
-                <span className="abs-total-val">₹{data.total ?? "—"}</span>
               </div>
             </div>
+          )}
 
-            {/* Customer Card */}
-            <div className="abs-card">
-              <div className="abs-card-header">
-                <div className="abs-avatar">{initials}</div>
+          {isCompleted && (
+            <div className="col-12">
+              <div className="alert alert-success d-flex align-items-center gap-3 mb-0" role="alert">
+                <i className="bi bi-check-circle fs-3"></i>
                 <div>
-                  <p style={{ margin: 0, fontWeight: 600, fontSize: 15 }}>
-                    {data.user?.username || "Unknown"}
-                  </p>
-                  <p style={{ margin: 0, fontSize: 12, color: "#888880" }}>Customer</p>
-                </div>
-              </div>
-              <div className="abs-rows">
-                <div className="abs-row" style={{ flexDirection: "column", gap: 6 }}>
-                  <span className="abs-row-label" style={{ width: "auto" }}>Contact</span>
-                  <div className="abs-contact-row">
-                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-                      <path d="M3 4a1 1 0 011-1h8a1 1 0 011 1v8a1 1 0 01-1 1H4a1 1 0 01-1-1V4z"/>
-                      <path d="M3 7h10" strokeLinecap="round"/>
-                    </svg>
-                    {data.user?.phone || "—"}
-                  </div>
-                </div>
-                <div className="abs-row" style={{ flexDirection: "column", gap: 6 }}>
-                  <span className="abs-row-label" style={{ width: "auto" }}>Address</span>
-                  <div className="abs-contact-row">
-                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-                      <path d="M8 1.5C5.5 1.5 3.5 3.5 3.5 6c0 3.75 4.5 8.5 4.5 8.5s4.5-4.75 4.5-8.5c0-2.5-2-4.5-4.5-4.5z" strokeLinejoin="round"/>
-                      <circle cx="8" cy="6" r="1.5"/>
-                    </svg>
-                    {[data.user?.city, data.user?.state, data.user?.pin]
-                      .filter(Boolean)
-                      .join(", ") || "—"}
-                  </div>
+                  <div className="fw-bold">Booking Completed</div>
+                  <div className="small">This reservation is confirmed and payment has been received.</div>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
+          )}
+
+        </section>
       </div>
-    </>
+    </main>
   );
 }

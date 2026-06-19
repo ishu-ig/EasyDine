@@ -6,7 +6,7 @@ import { createMultiPartRecord, deleteRecord, getRecord, updateMultiPartRecord }
 function* createSaga(action) {
     // let response = yield createRecord("subcategory", action.payload)
     let response = yield createMultiPartRecord("subcategory", action.payload)
-    yield put({ type: CREATE_SUBCATEGORY_RED, payload: response })
+    yield put({ type: CREATE_SUBCATEGORY_RED, payload: response.data })
 }
 
 function* getSaga(action) {

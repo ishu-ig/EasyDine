@@ -31,4 +31,5 @@ module.exports = {
     testimonialUploader:  createUploader("testimonial"),
     productUploader:      createUploader("product"),
     userUploader:         createUploader("user"),
+    bannerUploader:         createUploader("banner"),
 }

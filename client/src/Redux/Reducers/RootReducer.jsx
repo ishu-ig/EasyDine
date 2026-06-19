@@ -10,6 +10,7 @@ import WishlistReducer from "./WishlistReducer";
 import CartReducer from "./CartReducer";
 import CheckoutReducer from "./CheckoutReducer";
 import BookingReducer from "./BookingReducer";
+import BannerReducer from "./BannerReducer";
 
 export default combineReducers({
     MaincategoryStateData : MaincategoryReducer,
@@ -22,5 +23,6 @@ export default combineReducers({
     WishlistStateData : WishlistReducer,
     CartStateData : CartReducer,
     CheckoutStateData : CheckoutReducer,
-    BookingStateData : BookingReducer
+    BookingStateData : BookingReducer,
+    BannerStateData : BannerReducer
 })

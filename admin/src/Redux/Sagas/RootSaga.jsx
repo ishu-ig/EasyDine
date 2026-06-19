@@ -10,6 +10,7 @@ import cartSaga from "./CartSagas";
 import checkoutSaga from "./CheckoutSagas";
 import wishlistSaga from "./WishlistSagas";
 import bookingSaga from "./BookingSagas";
+import bannerSagas from "./BannerSagas";
 
 export default function* RootSaga() {
     yield all([
@@ -23,7 +24,8 @@ export default function* RootSaga() {
         cartSaga(),
         checkoutSaga(),
         wishlistSaga(),
-        bookingSaga()
+        bookingSaga(),
+        bannerSagas()
         
     ])
 }

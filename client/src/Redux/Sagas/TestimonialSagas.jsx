@@ -6,7 +6,7 @@ import { createMultiPartRecord, deleteRecord, getRecord, updateMultiPartRecord }
 function* createSaga(action) {
     // let response = yield createRecord("testimonial", action.payload)
     let response = yield createMultiPartRecord("testimonial", action.payload)
-    yield put({ type: CREATE_TESTIMONIAL_RED, payload: response.data })
+    yield put({ type: CREATE_TESTIMONIAL_RED, payload: response })
 }
 
 function* getSaga(action) {
