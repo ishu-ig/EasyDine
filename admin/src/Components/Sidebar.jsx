@@ -12,6 +12,7 @@ const navLinks = [
   { to: "/booking",      icon: "bi-calendar-check",    label: "Bookings" },
   { to: "/testimonial",  icon: "bi-chat-square-quote", label: "Testimonials" },
   { to: "/newsletter",   icon: "bi-envelope-paper",    label: "Newsletter" },
+    { to: "/user",   icon: "bi-envelope-paper",    label: "Users" },
   { to: "/contactUs",    icon: "bi-headset",           label: "Contact Queries" },
 ];
 
