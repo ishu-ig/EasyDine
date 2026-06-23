@@ -8,7 +8,7 @@ require("./db_connect")
 const Router = require("./routes/index")
 const app = express()
 
-var whitelist = ['http://localhost:3000', 'http://localhost:8000', 'http://localhost:4000','https://easydine-86b9.onrender.com','https://easy-dineadmin.vercel.app'] 
+var whitelist = ['http://localhost:3000', 'http://localhost:8000', 'http://localhost:4000','https://easy-dineadmin.vercel.app','https://easydine-86b9.onrender.com'] 
 var corsOptions = {
     origin: function (origin, callback) {
         // console.log("Origin",origin)
