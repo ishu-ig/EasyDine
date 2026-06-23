@@ -120,6 +120,7 @@ export default function HomePage() {
 
       <CategorySlider
         title="Main Categories"
+        type="mc"
         data={MaincategoryStateData.filter((x) => x.active)}
       />
 
@@ -129,6 +130,7 @@ export default function HomePage() {
 
       <CategorySlider
         title="Sub Categories"
+        type="sc"
         data={SubcategoryStateData.filter((x) => x.active)}
       />
 

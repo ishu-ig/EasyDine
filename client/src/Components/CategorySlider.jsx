@@ -8,7 +8,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { getMaincategory } from "../Redux/ActionCreators/MaincategoryActionCreators";
 import { getSubcategory } from "../Redux/ActionCreators/SubcategoryActionCreators";
 
-export default function CategorySlider({ title, data }) {
+export default function CategorySlider({ title, data, type }) {
   const dispatch = useDispatch();
   const MaincategoryStateData = useSelector(
     (state) => state.MaincategoryStateData,
@@ -133,8 +133,9 @@ export default function CategorySlider({ title, data }) {
           pagination={{ clickable: true }}
           breakpoints={{
             0: { slidesPerView: 2, spaceBetween: 12 },
-            768: { slidesPerView: 3, spaceBetween: 20 },
-            1024: { slidesPerView: 4, spaceBetween: 24 },
+            550: { slidesPerView: 3, spaceBetween: 16 },
+            768: { slidesPerView: 4, spaceBetween: 18 },
+            1024: { slidesPerView: 5, spaceBetween: 20 },
           }}
           loop={true}
           className="mySwiper"
@@ -204,11 +205,7 @@ export default function CategorySlider({ title, data }) {
                 </h4>
 
                 <Link
-                  to={
-                    title === "Maincategory"
-                      ? `/product?mc=${item.name}`
-                      : `/product?sc=${item.name}`
-                  }
+                  to={`/product?${type}=${item.name}`}
                   style={{
                     display: "inline-block",
                     background: "transparent",
